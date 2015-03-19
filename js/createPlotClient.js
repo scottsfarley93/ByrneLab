@@ -1,11 +1,77 @@
+
+////////////////config keeps to graphing paramters and will be passed to the server with everything necessary to draw the graph////////
+config = {
+	title : "", //title of plot to be displayed
+	core : "", //core identifier that holds the datasets
+	//normalization properties
+	
+	normalization: {
+		dataSum: { // controls whether or not to make a sum field available.  Must be precalculated by the user
+			doDataSum:false,
+			sumField : { //where to get the values for the data sum
+				file :  "",
+				fileIndex : -1,
+				fieldName : "",
+			},
+		},
+		subtotals: {
+			//controls the generation of subtotal fields.  Will be calculated at runtime. 
+			numSubtotals: 0,
+			subtotals: [] //add to subtotal {file: "", fileIndex:"", fieldName: ""}
+		},
+		apfac: {
+			//controls the normalization of data using apfac techniques.  
+			//both grains per unit volume and accumulation rate are possible to compute.
+			//Calculated at runtime
+			doVolumeApfac: false,
+			doMassApfac: false,
+			volumeVolumeField: {file: "", fileIndex: "", fieldName: ""}, //volume field for calculating the volume apfac
+			volumeControlField: {file: "", fileIndex: "", fieldName: ""}, //field with # of control grains for the volume apfac
+			massMassField: {file: "", fileIndex: "", fieldName: ""}, //field with mass for calculation of mass/accumulation apfac
+			massControField: {file: "", fileIndex: "", fieldName: ""}, // field with number of control grains for the mass apfac
+			massYearField: {file: "", fileIndex: "", fieldName: ""},  //field with number of years in sample for accumulation apfac
+		}
+	},//end normalization
+	plotHeight: 0, //in pixels
+	plotWidth: 0, //in pixels
+	axes: {
+		//controls axis properties
+		primaryAxisCategory: "Depth", //can either be "Depth" or "Time"
+		showSecondaryAxis: false,
+		primaryAxisTitle: "", //label to show on the main axis, eg "Depth"
+		primaryAxisUnits: "", //label to show for units of main axis, eg "Meters"
+		secondaryAxisTitle: "", //label to show on secondary axis, eg "Chronology"
+		secondaryAxisUnits: "", //label for units of secondary axis, eg "Years"
+	},
+	extraFeatures: false, // could be extended to control dendrogram and/or stratigraphy when those features are working
+	taxa : [ //starts as empty array and is filled with n objects using the scheme below
+		/*
+		{
+			dataset: "", 
+			fileIndex: 0,
+			name: "",
+			plotIndex: 0, //ordering of taxa in the plot -- > 0 based left to right
+			show5xCurve: false, //boolean to draw exaggeration curve,
+			fillColor: "", //hex color for curve fill,
+			outlineColor: "", //hex color for curve outline
+			topLabel: "", //can be anything but defaults to taxon name in file,
+			grouping: "", //Herbs, Shrubs, Trees, Trees & Shrubs, Aquatics, Other
+			bottomLabel: "", //label to go underneath curve left aligned with axis
+			topLabelItalics: true //controls whether the taxon name  (or other label)  will be printed in italix 
+		}
+		*/
+	],
+	numTaxa: 0, //total number of taxa to be plotted
+	user: "", //user who create the plot,
+	createdAt: "1900-01-01 12:00:00", //when the configuration file was created
+	lastDrawn: "1900-01-01 12:00:00", //when the plot was last drawn 
+}
+
+///////////////////////////////////end config///////////////////
+
 //keep track of variables for the plot
 //taxaList is for client side
 var taxaList = []
-
-//graphingParams is for server side
-var graphingParams = {}
-graphingParams['subtotals'] = []
-
 //keep track of what page we are on
 var page = 0;
 $("#backButton").on('click', function(){
@@ -30,11 +96,12 @@ $("#titleMenu").addClass("active")
 $("#selectSum").hide();
 $("#subtotalDiv").hide()
 $("#apfacDiv").hide()
+$("#customPlotDims").hide()
 
 
 //get the list of cores from the server
 $.ajax({
-	url:"cgi-bin/populateCores.php",
+	url:"scripts/populateCores.php",
 	type:'POST',
 	error:function(error){
 		alert("Error gathering data from the server.  Please try again later.");
@@ -77,7 +144,7 @@ function addSubtotal(){
 	var label = "<label for='subtotal_'" + numSubtotals + "' style='color:" + color + "'>Subtotal " + numSubtotals + ": </label>";
 	var add = "<div>" + label + textInput + "</div>"
 	subtotals[numSubtotals] = [];
-	graphingParams['subtotals'][numSubtotals] = []; 
+	config['normalization']['subtotals'][numSubtotals] = []; 
 	subtotalElements[numSubtotals] = [];
 	$("#subtotalTextHolder").append(add);
 	$(".subtotalEntry").on('click', updateSubtotal);
@@ -110,7 +177,7 @@ function addToSubtotal(){
 		parent.css('color', color)
 		if(!$.isEmptyObject(subtotals)){
 			subtotals[current_subtotal].push(name);
-			graphingParams['subtotals'][current_subtotal].push({'file':dataNum, 'number':dataNum, 'name':name})
+			config['normalization']['subtotals'][current_subtotal].push({'file':dataNum, 'number':dataNum, 'name':name})
 			subtotalElements[current_subtotal].push($(this))
 			current_val = $(st).val()
 			new_val= current_val + name + ", "
@@ -122,7 +189,7 @@ function addToSubtotal(){
 		current_val = subtotals[current_subtotal]
 		index = subtotals[current_subtotal].indexOf(name)
 		subtotals[current_subtotal].splice(index, 1)
-		graphingParams['subtotals'][current_subtotal].splice(index, 1);
+		config['normalization']['subtotals'][current_subtotal].splice(index, 1);
 		subtotalElements[current_subtotal].splice(index, 1)
 		i = 0
 		val = ""
@@ -143,7 +210,7 @@ function removeSubtotal(){
 	}
 	var removeColor = subtotalColors[current_subtotal-1];
 	subtotals[numSubtotals] = [];
-	graphingParams['subtotals'][numSubtotals] = [];
+	config['normalization']['subtotals'][numSubtotals] = [];
 	numSubtotals -= 1;
 	current_subtotal = numSubtotals
 	color = subtotalColors[current_subtotal]
@@ -154,7 +221,7 @@ $("#removeSubtotalButton").on('click', removeSubtotal)
 
 //get a list of taxa from the server for that core
 function loadTaxa(){$.ajax({
-	url:"cgi-bin/coreTaxa.php",
+	url:"scripts/coreTaxa.php",
 	type:"POST",
 	error:function(error){
 		alert("Error gathering data from the server.  Please try again later.");
@@ -179,40 +246,99 @@ function loadTaxa(){$.ajax({
 			subString = str
 			str += "<ul class='checkbox-grid'>";
 			subString += "<ul class='checkbox-grid subtotal' >"
+			var sumFieldString = "<optgroup label='" + fileName + "'>"
+			volumeVolumeString = "<optgroup label='" + fileName + "'>"
+			volumeControlString = "<optgroup label='" + fileName + "'>"
+			massMassString = "<optgroup label='" + fileName + "'>"
+			massControlString = "<optgroup label='" + fileName + "'>"
+			massYearString = "<optgroup label='" + fileName + "'>"
 			for (var t=1; t<taxa.length; t++){
 				taxonName = taxa[t]
 				str += "<li class='taxon-row'><input class='taxon-input' data-name='" + taxonName + "' type='checkbox' data-number='" + t + "' data-file='" + fileName +  "'><p class='taxon'>" + taxonName + "<p></li>"
 				subString += "<li class='subtotal-row'><input class='taxon-subtotal' data-name='" + taxonName + "' type='checkbox' data-number='" + t + "' data-file='" + fileName +  "'><p class='subtotalTaxonName'>" + taxonName + "<p></li>"
-				$("#sumFieldDropdown").append("<option value='" + taxonName + "'>" + taxonName + "</option>");
-				$("#volumeVolumeSelect").append("<option value='" + taxonName + "'>" + taxonName + "</option>");
-				$("#volumeControlSelect").append("<option value='" + taxonName + "'>" + taxonName + "</option>");
-				$("#massMassSelect").append("<option value='" + taxonName + "'>" + taxonName + "</option>");
-				$("#massControlSelect").append("<option value='" + taxonName + "'>" + taxonName + "</option>");
-				$("#massYearsSelect").append("<option value='" + taxonName + "'>" + taxonName + "</option>");
+				//$("#sumFieldDropdown").append("<option value='" + taxonName + "'>" + taxonName + "</option>");
+				sumFieldString += "<option value='" + taxonName + "'>" + taxonName + "</option>"
+				volumeVolumeString += "<option value='" + taxonName + "'>" + taxonName + "</option>"
+				volumeControlString += "<option value='" + taxonName + "'>" + taxonName + "</option>"
+				massMassString += "<option value='" + taxonName + "'>" + taxonName + "</option>"
+				massControlString += "<option value='" + taxonName + "'>" + taxonName + "</option>"
+				massYearString += "<option value='" + taxonName + "'>" + taxonName + "</option>"
 			}
+			$("#subtotalTaxaHolder").append(subString + "</ul>" + "</div><br />");
+			sumFieldString += "</optgroup>"
+			$("#sumFieldDropdown").append(sumFieldString);
+			volumeVolumeString += "</optgroup>"
+			$("#volumeVolumeSelect").append(volumeVolumeString)
+			volumeControlString += "</optgroup>"
+			$("#volumeControlSelect").append(volumeControlString)
+			massMassString += "</optgroup>"
+			$("#massMassSelect").append(massMassString);
+			massControlString += "</optgroup>"
+			$("#massControlSelect").append(massControlString)
+			massYearString = "</optgroup>"
+			$("#massYearsSelect").append(massYearString);
 			str += "</ul>"
 			str+="</div><br />"
-			$("#taxaHolder").append(str);
-			$("#subtotalTaxaHolder").append(subString + "</ul>" + "</div><br />");
-			
+			$("#taxaHolder").append(str);		
 		}
+		//handle apfac and sumtotal loading 
+		$('#sumFieldDropdown').change(function(){
+			var selected = $(':selected', this);
+			var index = selected.index();
+    		s = selected.closest('optgroup').attr('label')
+    		config.normalization['sumField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
+		})
+		//apfac --> volume
+		$("#volumeVolumeSelect").change(function(){
+			var selected = $(':selected', this);
+			var index = selected.index();
+    		s = selected.closest('optgroup').attr('label')
+    		config.normalization['volumeVolumeField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
+		})
+		$("#volumeConctrolSelect").change(function(){
+			var selected = $(':selected', this);
+			var index = selected.index();
+    		s = selected.closest('optgroup').attr('label')
+    		config.normalization['volumeControlField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
+		})
+		$("#massMassSelect").change(function(){
+			var selected = $(':selected', this);
+			var index = selected.index();
+    		s = selected.closest('optgroup').attr('label')
+			config.normalization['massMassField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
+		})
+		$("#massControlSelect").change(function(){
+			var selected = $(':selected', this);
+			var index = selected.index();
+    		s = selected.closest('optgroup').attr('label')
+			config.normalization['massMassField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
+		})
+		$("#massYearsSelect").change(function(){
+			var selected = $(':selected', this);
+			var index = selected.index();
+    		s = selected.closest('optgroup').attr('label')
+			config.normalization['massYearField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
+		})
+		//handle clicks on the taxa checkbox grid
 		$(".taxon-input").click(function(){
-				
 					var num = $(this).data('number')
 					var file = $(this).data('file');
 					var name = $(this).data('name');
-					var obj = {"Name": name, "Index": num, "File": file}
+					var obj = {"name": name, "fileIndex": num, "file": file}
 				if ($(this).prop('checked')){
 					//push it into UI list
 					taxaList.push(name);
 					//push it into server side params list
-					graphingParams.push(obj);
+					config['taxa'].push(obj);
 				}else{
 					var index = taxaList.indexOf(name);
 					taxaList.splice(index, 1);
-					for (i in graphingParams){
-						if (graphingParams['name'] == name){
-							graphingParams.splice(i, 1);
+					for (var i=0; i< config['taxa'].length; i++){
+						var item = config['taxa'][i];
+						var n = item['name'];
+						var f = item['file'];
+						if (n == name && f == file){
+							cofnig['taxa'].splice(i, 1);
 						}
 					}
 				}
@@ -235,13 +361,25 @@ $('#apfacGlyph').click(function(){
 	$("#apfacDiv").slideToggle();
 	$(this).toggleClass("glyphicon-minus glyphicon-plus")
 })
+$("#noSumInput").change(function(){
+	//control the generation of a total of all of the data points
+	if ($(this).prop('checked')){
+		$("#sumFieldDropdown").prop("disabled", true);
+		//graphingParams['useSumField'] = true
+
+	}else{
+		$("#sumFieldDropdown").prop('disabled', false);
+		//graphingParams['useSumField'] = false;
+	}
+});
+
 
 
 
 //check if there is a chronology file associated with the core
 function checkChronology(){
 		$.ajax({
-		url:"cgi-bin/checkChronologyStatus.php",
+		url:"scripts/checkChronologyStatus.php",
 		type:"POST",
 		data:{
 			coreID:$("#coreDropdown").val()
@@ -278,7 +416,7 @@ function showSortableList(taxaList){
 	if (taxaList.length > 0){
 		for (i in taxaList){
 			var name = taxaList[i]
-			$("#orderList").append("<li class='list-group-item' >" + name + "</li>")
+			$("#orderList").append("<li class='list-group-item sortTaxa' >" + name + "</li>")
 		}
 	}else{
 		$("#orderList").html("Please select one or more taxa to graph.")
@@ -300,7 +438,6 @@ function checkCore(){
 $(".btn").click(function(){
 	switch (page){
 		case 0://first page --> title plot
-
 			$("#plotTitleDiv").show()
 			$("#selectCoreDiv").hide();
 			$("#pageTitle").text("Title")
@@ -316,6 +453,7 @@ $(".btn").click(function(){
 			$("#coreSelectMenu").removeClass('active list-group-item-success')
 			break;
 		case 1:
+		//select core dropdown menu
 			$("#taxaHolder").html("");
 			$("#plotTitleDiv").hide()
 			$("#selectCoreDiv").show();
@@ -331,8 +469,10 @@ $(".btn").click(function(){
 			$("#extraFeaturesDiv").hide()
 			$("#coreSelectMenu").addClass("active")
 			$("#taxaSelectMenu").removeClass('active list-group-item-success')
+			config['title'] = $('#plotTitleInput').val()
 			break;
 		case 2:
+		//select taxa checkbox grid
 			checkCore();
 			taxaList = []
 			$("#taxaHolder").html("");
@@ -350,8 +490,10 @@ $(".btn").click(function(){
 			$("#extraFeaturesDiv").hide()
 			$("#taxaSelectMenu").addClass("active")
 			$("#orderCurvesMenu").removeClass('active list-group-item-success')
+			config['core'] = $("#coreDropdown").val()
 			break
 		case 3:
+		//curve order sortable list
 			$("#plotTitleDiv").hide()
 			$("#selectCoreDiv").hide()
 			$("#pageTitle").text("Order Taxa");
@@ -367,8 +509,10 @@ $(".btn").click(function(){
 			$("#extraFeaturesDiv").hide()
 			$("#orderCurvesMenu").addClass("active")
 			$("#normalizationMenu").removeClass('active list-group-item-success')
+			//taxa are added and removed in the loadTaxa function
 			break;
 		case 4:
+		//data normalization options --> total sum generation, subtotals, apfac
 			$("#plotTitleDiv").hide()
 			$("#selectCoreDiv").hide()
 			$("#selectTaxaDiv").hide()
@@ -382,8 +526,21 @@ $(".btn").click(function(){
 			$("#extraFeaturesDiv").hide()
 			$("#normalizationMenu").addClass("active")
 			$("#dimensionsMenu").removeClass('active list-group-item-success')
+			//get the order correct
+			var numTaxaInList = $('#orderList').length
+			var lst = $("#orderList")
+			$(".sortable").each(function(index){
+				name = $(this).text();
+				for (var i=0; i< config['taxa'].length; i++){
+					var tName = config['taxa']['name'];
+					if (name == tName){
+						config['taxa']['plotIndex'] = index;
+					}
+				}
+			})
 			break;
 		case 5:
+		//plot dimensions
 			$("#plotTitleDiv").hide()
 			$("#selectCoreDiv").hide()
 			$("#selectTaxaDiv").hide()
@@ -396,10 +553,10 @@ $(".btn").click(function(){
 			$("#normalizationMenu").addClass('list-group-item-success').removeClass('active')
 			$("#extraFeaturesDiv").hide()
 			$("#dimensionsMenu").addClass("active")
-			$("#axesMenu").removeClass('active list-group-item-success')
 			break
 			
 		case 6:
+		//axes --> primary axis select, secondary axis options, axis titles
 			checkChronology()
 			$("#plotTitleDiv").hide()
 			$("#selectCoreDiv").hide()
@@ -414,8 +571,26 @@ $(".btn").click(function(){
 			$("#extraFeaturesDiv").hide()
 			$("#axesMenu").addClass("active")
 			$("#extraMenu").removeClass('active list-group-item-success')
+			//get plot dimensions from previous page
+			var height = $("input[name=page-size]:checked").attr('height')
+			var width = $("input[name=page-size]:checked").attr('width')
+			var units = $("input[name=page-size]:checked").attr('units')
+			//convert to px using 72 px per inch and 28 px per cm
+			if (units == 'cm'){
+				heightPX = height * 28;
+				widthPX = width * 28;
+			}else if (units == 'in'){
+				heightPX = height * 72;
+				widthPX = width * 72;
+			}else{
+				widthPX = -1;
+				heightPX = -1;
+			}
+			config['plotWidth'] = widthPX;
+			config['plotHeight'] = heightPX;
 			break
 		case 7:
+		//extra features to be implemented as time allows
 			$("#plotTitleDiv").hide()
 			$("#selectCoreDiv").hide()
 			$("#selectTaxaDiv").hide()
@@ -430,9 +605,26 @@ $(".btn").click(function(){
 			$("#extraMenu").addClass("active")
 			$("#nextButton").html("Next <span class='glyphicon glyphicon-menu-right'></span>").removeClass('btn-success').addClass('btn-primary')
 			$("#stylingMenu").removeClass('active list-group-item-success')
+			//get axis options from previous page
+			var primaryAxisCat = $("input[name=primaryAxisSelect]:checked").val();
+			var showSecondaryAxis = $("input[name=secondaryAxisSelect]:checked").val();
+			var primaryAxisTitle = $("#primaryAxisTitleInput").val();
+			var primaryAxisUnits = $("#primaryAxisUnitsInput").val();
+			config['axes']['primaryAxisCategory'] = primaryAxisCat;
+			config['axes']['primaryAxisTitle'] = primaryAxisTitle;
+			config['axes']['primaryAxisUnits'] = primaryAxisUnits;
+			config['axes']['showSecondaryAxis'] = showSecondaryAxis;
+			if (showSecondaryAxis == 'true'){
+				var secondaryAxisTitle = $("#SecondaryAxisTitleInput").val()
+				var secondaryAxisUnits = $("#SecondaryAxisUnitsInput").val()
+				config['axes']['secondaryAxisTitle'] = secondaryAxisTitle;
+				config['axes']['secondaryAxisUnits'] = secondaryAxisUnits;
+			}
+			alert("Please note that these features are not yet available and neither the dendrogram nor the stratigraphy column will appear on your diagram. ")
 			break
 			
 		case 8:
+		//curve styling options
 			$("#plotTitleDiv").hide()
 			$("#selectCoreDiv").hide()
 			$("#selectTaxaDiv").hide()
@@ -446,6 +638,7 @@ $(".btn").click(function(){
 			$("#extraFeaturesDiv").hide()
 			$("#stylingMenu").addClass("active")
 			$("#nextButton").html("Plot <span class='glyphicon glyphicon-send'></span>").removeClass('btn-primary').addClass('btn-success')
+			console.log(config)
 			break
 
 	}

@@ -127,11 +127,11 @@ if (isset($GET['core'])){
         	
         	<div class='row' id='normalizationDiv'>
         		<i>Select the normalizations you would like to calculate.</i>
-        		<ul class='list-group'>
+        		<ul class='list-group col-sm-10'>
         			<li class='list-group-item' id='selectSumLi'>
         				Total Field    <span class='glyphicon glyphicon-plus' id='sumSelectGlyph'></span>
         				<ul id='selectSum' class='list-group'>
-        					<li class='list-group-item'>Do not make a sum field available.  <input type='radio' value='0' name='sumFieldInput' id='noSumInput'/></li>
+        					<li class='list-group-item'>Do not make a sum field available.  <input type='checkbox' value='0' name='sumFieldInput' id='noSumInput'/></li>
         					<li class='list-group-item'>Use this field: <select id='sumFieldDropdown'></select></li>
         				</ul>
         			</li>
@@ -152,7 +152,7 @@ if (isset($GET['core'])){
         				APFAC     <span class='glyphicon glyphicon-plus' id='apfacGlyph'></span>
         				<div id='apfacDiv'>
         					
-        					<ul class='list-group'>
+        					<ul class='list-group '>
         						<li class='list-group-item'>
         							<strong><p>Grains per cm<sup>3</sup></p></strong>
         							<ul class='list-group'>
@@ -180,16 +180,16 @@ if (isset($GET['core'])){
         	
         	<div class='row' id='dimensionsDiv'>
         		<i>Select the dimensions of the output plot.</i>
-        		<ul class='list-group'>
+        		<ul class='list-group col-sm-10'>
         			<strong>Standard Sizes:</strong>
-        			<li class='list-group-item'><input type='radio' value='0' id='standardDim1' name='page-size'/>  2 x 4</li>
-        			<li class='list-group-item'><input type='radio' value='1' id='standardDim2' name='page-size'/>  4 x 6</li>
-        			<li class='list-group-item'><input type='radio' value='2' id='standardDim3' name='page-size'/>  8 x 12</li>
-        			<li class='list-group-item'><input type='radio' value='3' id='standardDim4' name='page-size'/>  5 x 10</li>
-        			<li class='list-group-item'><input type='radio' value='4' id='standardDim5' name='page-size'/>  8.5 x 11</li>
+        			<li class='list-group-item'><input type='radio' value='0' id='standardDim1' name='page-size' width='2' height='4' units= 'in' class='dim'/>  2 x 4</li>
+        			<li class='list-group-item'><input type='radio' value='1' id='standardDim2' name='page-size' width= '4' height='4' units= 'cm' class='dim'/>  4 x 6</li>
+        			<li class='list-group-item'><input type='radio' value='2' id='standardDim3' name='page-size' width= '8' height='4' units= 'cm' class='dim'/>  8 x 12</li>
+        			<li class='list-group-item'><input type='radio' value='3' id='standardDim4' name='page-size' width= '5' height='4' units= 'in' class='dim' />  5 x 10</li>
+        			<li class='list-group-item'><input type='radio' value='4' id='standardDim5' name='page-size' width= '8.5' height='4' units= 'cm' class='dim'/>  8.5 x 11</li>
         		</ul>
         		<br />
-        		<ul class='list-group'>
+        		<ul class='list-group col-sm-10' id='customPlotDims'>
         			<strong>Custom Size:</strong>
         			<li class='list-group-item'>Width (inches): <input type='text' name='customWidth' id='customWidthInput'/></li>
         			<li class='list-group-item'>Height (inches): <input type='text' name='customHeight' id='customHeightInput'/></li>
@@ -198,19 +198,19 @@ if (isset($GET['core'])){
         	
         	<div class='row' id='axesDiv'>
         		<i>Specify how you would like the axes to appear on your plot.</i>
-        		<ul class='list-group'>
+        		<ul class='list-group col-sm-10'>
         			<strong>Primary Axis</strong>
-        			<li class='list-group-item'><input type='radio' value='0' id='depthAxisInput' name='primaryAxisSelect'/>   Depth</li>
-        			<li class='list-group-item'><input type='radio' value='1' id='chronAxisInput' name='primaryAxisSelect'/>   Time</li>
+        			<li class='list-group-item'><input type='radio' value='Depth' id='depthAxisInput' name='primaryAxisSelect'/>   Depth</li>
+        			<li class='list-group-item'><input type='radio' value='Time' id='chronAxisInput' name='primaryAxisSelect'/>   Time</li>
         		</ul>
         		<br />
-        		<ul class='list-group'>
+        		<ul class='list-group col-sm-10'>
         			<strong>Secondary Axis</strong>
-        			<li class='list-group-item'><input type='radio' value='1' id='secondaryAxisShow' name='secondaryAxisSelect' />  Show Secondary Axis</li>
-        			<li class='list-group-item'><input type='radio' value='0' id='secondaryAxisHide' name='secondaryAxisSelect'checked/>  Don't Show Secondary Axis</li>
+        			<li class='list-group-item'><input type='radio' value='true' id='secondaryAxisShow' name='secondaryAxisSelect' />  Show Secondary Axis</li>
+        			<li class='list-group-item'><input type='radio' value='false' id='secondaryAxisHide' name='secondaryAxisSelect'checked/>  Don't Show Secondary Axis</li>
         		</ul>
         		<br />
-        		<ul class='list-group'>
+        		<ul class='list-group col-sm-10'>
         			<strong>Primary Axis Properties</strong>
         			<li class='list-group-item'>
         				Title for Primary Axis: <input type='text' name='primaryAxisTitleInput' id='primaryAxisTitleInput'/></li>
@@ -218,10 +218,10 @@ if (isset($GET['core'])){
         			<li class='list-group-item'>Units for Primary Axis: <input type='text' name='primaryAxisUnitsInput' id='primaryAxisUnitsInput'/></li>
         		</ul>
         		<br />
-        		<ul class='list-group' id='secondaryProps'>
+        		<ul class='list-group col-sm-10' id='secondaryProps'>
         			<strong>Secondary Axis Properties</strong>
         			<li class='list-group-item'>Title for Secondary Axis: <input type='text' name='SecondaryAxisTitleInput' id='SecondaryAxisTitleInput'/></li>
-        			<li class='list-group-item'>Units for Secondary Axis: <input type='text' name='SecondaryAxisUnitsInput' id='secondaryAxisUnitsInput'/></li>
+        			<li class='list-group-item'>Units for Secondary Axis: <input type='text' name='SecondaryAxisUnitsInput' id='SecondaryAxisUnitsInput'/></li>
         		</ul>
         		
         		
@@ -231,13 +231,13 @@ if (isset($GET['core'])){
         	<div class='row' id='extraFeaturesDiv'>
         		<i>These features are on the roadmap but this is currently a placeholder.</i>
         		<i>Nothing that is selected on this page will be passed to the server for graphing.  </i>
-        		<ul class="list-group">
+        		<ul class="list-group col-sm-10">
         			<strong>Stratigraphy Column</strong>
         			<li class='list-group-item'><input type='radio' value= '1' name='showStratigraphy' id='showStratigraphyInput'/>  Show stratigraphy column </li>
         			<li class='list-group-item'><input type='radio' value= '0' name='showStratigraphy' id='hideStratigraphyInput'/>  Don't show stratigraphy column </li>
         		</ul>
         		<br />
-        		<ul class="list-group">
+        		<ul class="list-group col-sm-10">
         			<strong>Dendrogram</strong>
         			<li class='list-group-item'><input type='radio' value= '1' name='showDendrogram' id='showDendrogramInput'/>  Show dendrogram element</li>
         			<li class='list-group-item'><input type='radio' value= '0' name='showDendrogram' id='hideDendrogramInput'/>  Don't show dendrogram element </li>
@@ -289,7 +289,7 @@ if (isset($GET['core'])){
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
-    <script src="js/createPlot.js"></script>
+    <script src="js/createPlotClient.js"></script>
     <script src='js/jquery.sortable.min.js'></script>
 
 	
