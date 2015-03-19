@@ -96,7 +96,7 @@ if (isset($GET['core'])){
     </div>
 
     <div class="container ">
-    	<div class='row '>
+    	<div class='row'>
     	    <div class='row' id='topBar' align="center">
         		<button type='button' id='backButton' class='btn btn-primary btn-large btn-left'><span class='glyphicon glyphicon-menu-left'></span>Back</button><button id='nextButton' type='button' class='btn btn-primary btn-large btn-right'>Next<span class='glyphicon glyphicon-menu-right'></span></button>
         		<h2 id='pageTitle'>Title</h2>
@@ -149,10 +149,9 @@ if (isset($GET['core'])){
         				</div>
         			</li>
         			<li class='list-group-item' id='apfacLi'>
-        				APFAC     <span class='glyphicon glyphicon-plus' id='apfacGlyph'></span>
-        				<div id='apfacDiv'>
+        				APFAC     <span class='glyphicon glyphicon-plus' id='0
         					
-        					<ul class='list-group '>
+        					<ul class='list-group  row'>
         						<li class='list-group-item'>
         							<strong><p>Grains per cm<sup>3</sup></p></strong>
         							<ul class='list-group'>
@@ -161,7 +160,7 @@ if (isset($GET['core'])){
         							</ul>
         						</li>
         					</ul> 
-        					<ul class='list-group'>
+        					<ul class='list-group row'>
         						<li class='list-group-item'>
         							<strong><p>Accumulation Rate</p></strong>
         							<ul class='list-group'>
@@ -180,7 +179,7 @@ if (isset($GET['core'])){
         	
         	<div class='row' id='dimensionsDiv'>
         		<i>Select the dimensions of the output plot.</i>
-        		<ul class='list-group col-sm-10'>
+        		<ul class='list-group col-sm-8'>
         			<strong>Standard Sizes:</strong>
         			<li class='list-group-item'><input type='radio' value='0' id='standardDim1' name='page-size' width='2' height='4' units= 'in' class='dim'/>  2 x 4</li>
         			<li class='list-group-item'><input type='radio' value='1' id='standardDim2' name='page-size' width= '4' height='4' units= 'cm' class='dim'/>  4 x 6</li>
@@ -189,7 +188,7 @@ if (isset($GET['core'])){
         			<li class='list-group-item'><input type='radio' value='4' id='standardDim5' name='page-size' width= '8.5' height='4' units= 'cm' class='dim'/>  8.5 x 11</li>
         		</ul>
         		<br />
-        		<ul class='list-group col-sm-10' id='customPlotDims'>
+        		<ul class='list-group col-sm-8' id='customPlotDims'>
         			<strong>Custom Size:</strong>
         			<li class='list-group-item'>Width (inches): <input type='text' name='customWidth' id='customWidthInput'/></li>
         			<li class='list-group-item'>Height (inches): <input type='text' name='customHeight' id='customHeightInput'/></li>
@@ -198,19 +197,19 @@ if (isset($GET['core'])){
         	
         	<div class='row' id='axesDiv'>
         		<i>Specify how you would like the axes to appear on your plot.</i>
-        		<ul class='list-group col-sm-10'>
+        		<ul class='list-group col-sm-8'>
         			<strong>Primary Axis</strong>
         			<li class='list-group-item'><input type='radio' value='Depth' id='depthAxisInput' name='primaryAxisSelect'/>   Depth</li>
         			<li class='list-group-item'><input type='radio' value='Time' id='chronAxisInput' name='primaryAxisSelect'/>   Time</li>
         		</ul>
         		<br />
-        		<ul class='list-group col-sm-10'>
+        		<ul class='list-group col-sm-8'>
         			<strong>Secondary Axis</strong>
         			<li class='list-group-item'><input type='radio' value='true' id='secondaryAxisShow' name='secondaryAxisSelect' />  Show Secondary Axis</li>
         			<li class='list-group-item'><input type='radio' value='false' id='secondaryAxisHide' name='secondaryAxisSelect'checked/>  Don't Show Secondary Axis</li>
         		</ul>
         		<br />
-        		<ul class='list-group col-sm-10'>
+        		<ul class='list-group col-sm-8'>
         			<strong>Primary Axis Properties</strong>
         			<li class='list-group-item'>
         				Title for Primary Axis: <input type='text' name='primaryAxisTitleInput' id='primaryAxisTitleInput'/></li>
@@ -218,26 +217,42 @@ if (isset($GET['core'])){
         			<li class='list-group-item'>Units for Primary Axis: <input type='text' name='primaryAxisUnitsInput' id='primaryAxisUnitsInput'/></li>
         		</ul>
         		<br />
-        		<ul class='list-group col-sm-10' id='secondaryProps'>
+        		<ul class='list-group col-sm-8' id='secondaryProps'>
         			<strong>Secondary Axis Properties</strong>
         			<li class='list-group-item'>Title for Secondary Axis: <input type='text' name='SecondaryAxisTitleInput' id='SecondaryAxisTitleInput'/></li>
         			<li class='list-group-item'>Units for Secondary Axis: <input type='text' name='SecondaryAxisUnitsInput' id='SecondaryAxisUnitsInput'/></li>
         		</ul>
-        		
-        		
-        		<div id='secondaryAxisText'></div>
+        		<div id='secondaryAxisText'>
+        			
+        		</div>
         	</div>
         	
         	<div class='row' id='extraFeaturesDiv'>
-        		<i>These features are on the roadmap but this is currently a placeholder.</i>
-        		<i>Nothing that is selected on this page will be passed to the server for graphing.  </i>
-        		<ul class="list-group col-sm-10">
+        		<ul class="list-group col-sm-8">
         			<strong>Stratigraphy Column</strong>
         			<li class='list-group-item'><input type='radio' value= '1' name='showStratigraphy' id='showStratigraphyInput'/>  Show stratigraphy column </li>
         			<li class='list-group-item'><input type='radio' value= '0' name='showStratigraphy' id='hideStratigraphyInput'/>  Don't show stratigraphy column </li>
+        			<li class='list-group-item'><button id='createStratDiagramButton' class='btn btn-primary' data-toggle='modal' data-target='#stratigraphy-modal'>Build Stratigraphy Diagram</button></li>
+        			<div class='modal fade' id='stratigraphy-modal' tabindex="-1" role='dialog' aria-hide='true'>
+        				<div class='modal-dialog'>
+        					<div class='modal-content'>
+        						<div class='modal-header'>
+        							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        							<h4 class='modal-title'>Stratigraphy Column Editor</h4>
+        							<div class='modal-body'>
+        								<i>This is a placeholder to do things later.</i>
+        							</div>
+        							<div class='modal-footer'>
+        								<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+        								<button type="button" class="btn btn-primary">Save changes</button>
+        							</div>
+        						</div>
+        					</div>
+        				</div>
+        			</div>
         		</ul>
         		<br />
-        		<ul class="list-group col-sm-10">
+        		<ul class="list-group col-sm-8">
         			<strong>Dendrogram</strong>
         			<li class='list-group-item'><input type='radio' value= '1' name='showDendrogram' id='showDendrogramInput'/>  Show dendrogram element</li>
         			<li class='list-group-item'><input type='radio' value= '0' name='showDendrogram' id='hideDendrogramInput'/>  Don't show dendrogram element </li>

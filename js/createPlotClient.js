@@ -96,7 +96,6 @@ $("#titleMenu").addClass("active")
 $("#selectSum").hide();
 $("#subtotalDiv").hide()
 $("#apfacDiv").hide()
-$("#customPlotDims").hide()
 
 
 //get the list of cores from the server
@@ -434,6 +433,23 @@ function checkCore(){
 	}
 }
 
+//show stratigraphy editor in one the button click
+
+
+
+function showGraphingOptions(){
+	//adds the necessary html elements to the last page of the createplot page
+	
+	
+	
+}
+
+
+
+
+
+
+
 //control what to show at each step
 $(".btn").click(function(){
 	switch (page){
@@ -620,7 +636,6 @@ $(".btn").click(function(){
 				config['axes']['secondaryAxisTitle'] = secondaryAxisTitle;
 				config['axes']['secondaryAxisUnits'] = secondaryAxisUnits;
 			}
-			alert("Please note that these features are not yet available and neither the dendrogram nor the stratigraphy column will appear on your diagram. ")
 			break
 			
 		case 8:
@@ -638,8 +653,36 @@ $(".btn").click(function(){
 			$("#extraFeaturesDiv").hide()
 			$("#stylingMenu").addClass("active")
 			$("#nextButton").html("Plot <span class='glyphicon glyphicon-send'></span>").removeClass('btn-primary').addClass('btn-success')
-			console.log(config)
 			break
+		case 9:
+			//actually submit the config object to the server for graphing
+			c = JSON.stringify(config)
+			$.ajax({
+				url:"scripts/saveDiagramConfig.php",
+				type:"POST",
+				error:function(error){
+					alert("Error gathering data from the server.  Please try again later.");
+					console.log("TAXA AJAX ERROR: " + error);
+				},
+				data:{
+					config: c,
+					core: config['core']
+				},
+				success: function(response){
+					r = JSON.parse(response);
+					if (r['success'] == 'true'){
+						user = r['user'];
+						core = r['core'];
+						alert(core);
+						t = r['timestamp'];
+						url = "drawDiagram.php?user=" + user + "&core=" + core + "&creationTime=" + t
+						window.location.replace(url);
+					}
+					if (r['error'] == 'true'){
+						alert(r['message'])
+					}
+				}
+			})
 
 	}
 })

@@ -101,7 +101,7 @@
             <li><a href="savedProjects.php">Saved Projects</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="cgi-bin/logout.php">Logout</a></li>
+            <li><a href="scripts/logout.php">Logout</a></li>
           </ul>
       </div>
     </nav>
@@ -200,7 +200,7 @@
 			 });
 
 		    viewer.extend(Cesium.viewerEntityMixin);
-			viewer.dataSources.add(Cesium.GeoJsonDataSource.fromUrl('cgi-bin/sitesToJSON.php'));
+			viewer.dataSources.add(Cesium.GeoJsonDataSource.fromUrl('scripts/sitesToJSON.php'));
 
 	</script>
     <script>
@@ -208,7 +208,7 @@
     	$(document).ready(function(){
     		///populates core list below the map 
     		$.ajax({
-    			url:"cgi-bin/dataToJSON.php",
+    			url:"scripts/dataToJSON.php",
     			type:"POST",
     			success:function(response){
     				response =JSON.parse(response);
@@ -306,7 +306,7 @@
     						$("#submitUpdates").click(function(){
     							
     							$.ajax({
-    								url:'cgi-bin/updateCoreMetadata.php',
+    								url:'scripts/updateCoreMetadata.php',
     								type:"POST",
     								data:{
     									coreName:$("#coreName").text(),
@@ -333,7 +333,7 @@
     							test = confirm("Do you really want to remove this core and all associated files?  \nThis action cannot be undone.")
     							if (test){
     								$.ajax({
-    									url:"cgi-bin/deleteCore.php",
+    									url:"scripts/deleteCore.php",
     									type:"POST",
     									data:{
     										coreName:$("#coreName").text()
@@ -383,7 +383,7 @@
     					$("#submitUpdates").click(function(){
     						alert($("#fileName").text())
     							$.ajax({
-    								url:'cgi-bin/updateFileMetadata.php',
+    								url:'scripts/updateFileMetadata.php',
     								type:"POST",
     								data:{
     									coreName:$("#coreName").text(),
@@ -407,7 +407,7 @@
     							test = confirm("Do you really want to remove this datafile? \nThis action cannot be undone.")
     							if (test){
     								$.ajax({
-    									url:"cgi-bin/deleteFile.php",
+    									url:"scripts/deleteFile.php",
     									type:"POST",
     									data:{
     										coreName:$("#coreName").text(),
@@ -460,7 +460,7 @@
     							test = confirm("Do you really want to remove this datafile? \nThis action cannot be undone.")
     							if (test){
     								$.ajax({
-    									url:"cgi-bin/deleteChronology.php",
+    									url:"scripts/deleteChronology.php",
     									type:"POST",
     									data:{
     										coreName:$("#coreName").text(),

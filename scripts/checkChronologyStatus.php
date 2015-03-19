@@ -14,5 +14,5 @@ if(isset($_POST['coreID'])){
 $sql = "SELECT * FROM `ChronologyFiles` WHERE CoreID = '$coreID' AND User='$username'";
 $result = mysqli_query($connection, $sql);
 $numRows = mysqli_num_rows($result);
-echo $numRows;
+
 ?>
