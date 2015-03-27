@@ -1,10 +1,10 @@
 <?php
 require_once("../database_access.php");
 session_start();
-if(isset($_SESSION['username'])){
-	$username = $_SESSION['username'];
+if(isset($_SESSION['user'])){
+	$username = $_SESSION['user'];
 }else{
-	$username = 'scottsfarley';
+	$username = '';
 }
 if(isset($_POST['coreName'])){
 	$coreName = strip_tags(stripslashes($_POST['coreName']));

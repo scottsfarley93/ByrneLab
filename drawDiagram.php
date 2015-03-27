@@ -1,10 +1,13 @@
 <?php
 require_once("database_access.php");
 session_start();
-if (isset($_SESSION['user'])){
+//check credentials and get session user
+session_start();
+if ($_SESSION['loggedIn'] == "TRUE"){
+	$user = $_SESSION['user'];
 	$sessionUser = $_SESSION['user'];
 }else{
-	$sessionUser = 'scottsfarley';
+	header("Location: default.html");
 }
 if (isset($_GET['user'])){
 	$user = $_GET['user'];
@@ -31,52 +34,119 @@ if(isset($_GET['creationTime'])){
 }
 
 //if the necessary parameters are not set redirect the users to the diagram creation page --> we dont want users opening this page unless there is a predefined conf file
-
 if ($t == "None" or $core == "None" or $user == "None"){
 	header("Location: createPlot.php");
 	die();
 }
 ?>
-<html>
-	<head>
-		<title>
-			Pollen Diagram
-		</title>
-	</head>
-	<body>
-		<h1>We are cooking with gas, now!</h1>
-	</body>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<?php
+if (isset($GET['core'])){
+	$core = $GET['core'];
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+  	<style>
+  	#plot{
+  		padding: 10%;
+  	}
+  	#plot{
+  		margin: 10%;
+  	}
+  	.axis path,
+	.axis line {
+	  fill: none;
+	  stroke: #000;
+	  shape-rendering: crispEdges;
+	}
+	.axis {
+   font: 10px sans-serif;
+ }
+	  	</style>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create Plot</title>
+  <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">
+    
+    
+
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <a class="navbar-brand">Calpalyn II</a>
+        </div>
+        <div id="navbar" class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+          <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Datafiles <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li><a href="addNewCore.php">Add new core</a></li>
+                <li><a href="addNewDatafile.php">Add new datafile</a></li>
+                <li><a href="addNewChronology.php">Add new chronology</a></li>
+                <li class='divider'></li>
+                <li><a href="manageData.php">Manage existing files</a></li>
+              </ul>
+            </li>
+            <li><a href="createPlot.php">Create Plot</a></li>
+            <li><a href="savedProjects.html">Saved Projects</a></li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="cgi-bin/logout.php">Logout</a></li>
+          </ul>
+      </div>
+    </nav>
+    <div class="container ">
+    	<div id='plot'>
+    		
+    	</div>
+    </div> <!-- /container -->
+<footer>
+        <div class="container" >
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <ul class="list-inline">
+                        <li>
+                            <a href="#">Home</a>
+                        </li>
+                        <li class="footer-menu-divider">&sdot;</li>
+                        <li>
+                            <a href="plot.html">Plot</a>
+                        </li>
+                        <li class="footer-menu-divider">&sdot;</li>
+                        <li>
+                       <a href="#">About</a>
+                        </li>
+                        
+                        <li class="footer-menu-divider">&sdot;</li>
+                        <li>
+                            <a href="http://geography.berkeley.edu">Geography at Berkeley</a>
+                        </li>
+                    </ul>
+                    <p class="copyright text-muted small">Copyright &copy; Scott Farley 2015.</p>
+                    <p class='copyright text-muted small'>All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
-	<script>
-	//lookup the configuration file for this diagram
-		function getQueryVariable(variable) {
-		    var query = window.location.search.substring(1);
-		    var vars = query.split('&');
-		    for (var i = 0; i < vars.length; i++) {
-		        var pair = vars[i].split('=');
-		        if (decodeURIComponent(pair[0]) == variable) {
-		            return decodeURIComponent(pair[1]);
-		        }
-		    }
-		    console.log('Query variable %s not found', variable);
-		}
-		coreName = getQueryVariable("core");
-		userName = getQueryVariable("user");
-		timestamp = getQueryVariable("creationTime");
-		fName = "savedProjects/" + userName + '_' + coreName + "_" + timestamp + ".cpn";
-		console.log(fName);
-		$.ajax({
-			url: fName,
-			dataType: "application/json",
-			contentType: "application/json",
-			error: function(error){
-				alert(error);
-			},
-			success: function(response){
-				alert(response);
-			}
-		})
-		
-	</script>
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="js/drawDiagram.js"></script>
+    
+  </body>
 </html>

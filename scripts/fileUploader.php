@@ -1,9 +1,9 @@
 <?php
 session_start();
-if(isset($_SESSION['username'])){
-	$username = $_SESSION['username'];
+if(isset($_SESSION['user'])){
+	$username = $_SESSION['user'];
 }else{
-	$username = 'scottsfarley';
+	$username = '';
 }
 if(isset($_FILES['upload'])){
 	$dest = "../datafiles_" . $username . "_";

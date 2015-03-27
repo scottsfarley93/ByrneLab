@@ -1,10 +1,10 @@
 <?php
 require_once("../database_access.php");
 session_start();
-if(isset($_SESSION['username'])){
-	$username = $_SESSION['username'];
+if(isset($_SESSION['user'])){
+	$username = $_SESSION['user'];
 }else{
-	$username = "scottsfarley";
+	$username = "";
 }
 $sql = "SELECT * FROM Cores WHERE User='$username' AND Latitude > -9999 AND Longitude > -9999";
 $result = mysqli_query($connection, $sql);

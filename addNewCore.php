@@ -1,5 +1,10 @@
 <?php
-session_start();
+	session_start();
+	if ($_SESSION['loggedIn'] == "TRUE"){
+		$user = $_SESSION['user'];
+	}else{
+		header("Location: default.html");
+	}
 
 ?>
 
@@ -63,11 +68,11 @@ session_start();
                 <li><a href="manageData.php">Manage existing files</a></li>
               </ul>
             </li>
-            <li><a href="createPlot.html">Create Plot</a></li>
-            <li><a href="savedProjects.html">Saved Projects</a></li>
+            <li><a href="createPlot.php">Create Plot</a></li>
+            <li><a href="savedProjects.php">Saved Projects</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="cgi-bin/logout.php">Logout</a></li>
+            <li><a href="scripts/logout.php">Logout</a></li>
           </ul>
       </div>
     </nav>
@@ -80,7 +85,7 @@ session_start();
       	<h2 class="page-header featurette-heading">Add a new core</h2>
       	<div class='row'>
       		<p>Core Properties</p>
-      		<form method='post' action='cgi-bin/processNewFile.php' enctype="multipart/form-data">
+      		<form method='post' action='scripts/processNewFile.php' enctype="multipart/form-data">
 		      			<ul class='list-group'>
 		      			<li class='list-group-item'><label for='fileName'>Core Name: </label><input type='text' name='coreName' id='coreName' size='35' placeholder="e.g. ODP Hole 735B"/></li>
 		      			<li class='list-group-item'><label for='fileName'>Site Name: </label><input type='text' name='siteName' id='siteName' size='35' placeholder="e.g. Southwest Indian Ridge"/></li>
@@ -106,21 +111,17 @@ session_start();
 
 
     </div> <!-- /container -->
-	<footer>
+    <footer>
         <div class="container">
             <div class="row">
                 <div class="col-lg-12">
                     <ul class="list-inline">
                         <li>
-                            <a href="#">Home</a>
+                            <a href="default.html">Home</a>
                         </li>
                         <li class="footer-menu-divider">&sdot;</li>
                         <li>
-                            <a href="plot.html">Plot</a>
-                        </li>
-                        <li class="footer-menu-divider">&sdot;</li>
-                        <li>
-                       <a href="#">About</a>
+                       <a href="#">Reference Document</a>
                         </li>
                         
                         <li class="footer-menu-divider">&sdot;</li>
@@ -156,7 +157,7 @@ session_start();
     		var pass = $("#pass").val();
     		e.preventDefault();
     		    		$.ajax({
-    			url: 'cgi-bin/processNewCore.php', 
+    			url: 'scripts/processNewCore.php', 
     			type:"POST",
     			data:{
     				coreName:coreName,

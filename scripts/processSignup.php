@@ -16,17 +16,25 @@ session_start();
 	}else{
 		$pass = "";
 	}
-$sql = "SELECT * FROM `Users` WHERE `Email` = '$email'";
+	if(isset($_POST['username'])){
+		$username = $_POST['username'];
+	}else{
+		$username = "";
+	}
+$sql = "SELECT * FROM `Users` WHERE `Username` = '$username'";
 $result = mysqli_query($connection, $sql);
 if(mysqli_num_rows($result) != 0){
-	echo "A User with that Email Already Exists";
+	echo "0";
 }else{
-	$sql = "INSERT INTO `Users` VALUES (Default, '$email', '$name', '$pass', Default)";
+	$sql = "INSERT INTO `Users` VALUES (Default, '$email', '$name', '$pass', Default, '$username')";
 	$result = mysqli_query($connection, $sql);
 	if(!$result){
-		die("Couldn't connect to user server: " . mysqli_error($connection));
+		die(-1);
 	}else{
-		echo "Signup Successful";
+		//simulate login by setting session values
+		$_SESSION['user'] = '$username';
+		$_SESSION['loggedIn'] = "TRUE";
+		echo "1";
 	}
 }
 ?>

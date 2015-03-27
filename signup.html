@@ -68,8 +68,9 @@
         <div class="container" >
             <div class="row">
                 <div class="col-lg-12">
-                	<form id='signupform' >
+                	<form id='signupform'>
                 		<input class="form-control" type='text' placeholder="Name" name='name' size='75' id='nameInput'/><br />
+                		<input class='form-control' type='text' placeholder='Username' name='username' size='75' id='usernameInput'/><br />
                 		<input class="form-control" type='Email' placeholder='Email Address' name='email' size='75' id='emailInput'/> <br />
                 		<input  class="form-control" type='password' placeholder='Password' id='password' name='password' id='passwordInput' size='75'/><br />
                 		<input  class="form-control" type='password' placeholder='Confirm Password' id='passwordConfirm' name='passwordConfirm' size='75'/><br />
@@ -139,20 +140,31 @@
 			    else
 			        $("#match").html("<span id='matchGlyph' class='glyphicon glyphicon-ok'></span>Passwords match.");
 			}
-		$("#signupForm").submit(function(){
+		$("#submit").click(function(){
+			var password = $("#passwordConfirm").val()
 			$.ajax({
 				type:"POST",
-				url:'cgi-bin/processSignup.php',
+				url:'scripts/processSignup.php',
 				data:{
 					name: $("#nameInput").val(),
 					email: $("#emailInput").val(),
-					password: $("#passwordInput").val(),
+					password: $("#passwordConfirm").val(),
+					username: $("#usernameInput").val()
 				},
 				success: function(data){
-					console.log("SUCCESS: " + data);
+					if (data == -1){
+						alert("There was an unexpected server error. Please try again later.");
+					}else if(data == 0){
+						alert("That username is already taken. Please try another.");
+					}else if(data == 1){
+						alert("Welcome to Calpalyn II, " + $("#nameInput").val() + "\nYour username is " + $("#usernameInput").val());
+						document.location.href = "manageData.php";
+					}
 				},
 				beforeSend:function(){
-					alert("HI!")
+				},
+				error: function(){
+					alert("AJAX Error. :(")
 				}
 			})
 			return false;

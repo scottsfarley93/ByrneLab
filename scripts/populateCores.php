@@ -1,9 +1,10 @@
 <?php
 require_once("../database_access.php");
-if(isset($_SESSION['username'])){
-	$username = $_SESSION['username'];
+session_start();
+if(isset($_SESSION['user'])){
+	$username = $_SESSION['user'];
 }else{
-	$username = "scottsfarley";
+	$username = "";
 }
 $sql = "SELECT DISTINCT CoreName FROM `Cores`  WHERE `User` ='$username'";
 $result = mysqli_query($connection, $sql);

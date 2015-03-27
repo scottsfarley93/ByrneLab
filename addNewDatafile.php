@@ -1,5 +1,10 @@
 <?php
-session_start();
+	session_start();
+	if ($_SESSION['loggedIn'] == "TRUE"){
+		$user = $_SESSION['user'];
+	}else{
+		header("Location: default.html");
+	}
 ?>
 
 <!DOCTYPE html>
@@ -74,11 +79,11 @@ session_start();
                 <li><a href="manageData.php">Manage existing files</a></li>
               </ul>
             </li>
-            <li><a href="createPlot.html">Create Plot</a></li>
-            <li><a href="savedProjects.html">Saved Projects</a></li>
+            <li><a href="createPlot.php">Create Plot</a></li>
+            <li><a href="savedProjects.php">Saved Projects</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="cgi-bin/logout.php">Logout</a></li>
+            <li><a href="scripts/logout.php">Logout</a></li>
           </ul>
       </div>
     </nav>
@@ -121,21 +126,17 @@ session_start();
 
 
     </div> <!-- /container -->
-	<footer>
+    <footer>
         <div class="container">
             <div class="row">
                 <div class="col-lg-12">
                     <ul class="list-inline">
                         <li>
-                            <a href="#">Home</a>
+                            <a href="default.html">Home</a>
                         </li>
                         <li class="footer-menu-divider">&sdot;</li>
                         <li>
-                            <a href="plot.html">Plot</a>
-                        </li>
-                        <li class="footer-menu-divider">&sdot;</li>
-                        <li>
-                       <a href="#">About</a>
+                       <a href="#">Reference Document</a>
                         </li>
                         
                         <li class="footer-menu-divider">&sdot;</li>
@@ -160,7 +161,7 @@ session_start();
     	//dynamically populates the core list
     	$(document).ready(function(){
     		$.ajax({
-    			url:"cgi-bin/populateCores.php",
+    			url:"scripts/populateCores.php",
     			type:'post',
     			success:function(response){
     				response = JSON.parse(response);
@@ -283,7 +284,7 @@ session_start();
     			}
     		}
     		$.ajax({
-    			url:"cgi-bin/processNewDatafile_Metadata.php",
+    			url:"scripts/processNewDatafile_Metadata.php",
     			type:"POST",
     			data:{
     				fileID:fileID,
@@ -304,7 +305,7 @@ session_start();
     			}
     		})
     		$.ajax({
-    			url:"cgi-bin/processNewDatafile_File.php",
+    			url:"scripts/processNewDatafile_File.php",
     			type:"POST",
     			data:formData,
     			xhr: function(){
@@ -327,7 +328,7 @@ session_start();
     					alert("error saving datafile to server.")
     				}
     			},
-    			cahce:false,
+    			cache:false,
     			contentType:false,
     			processData:false	
     		})

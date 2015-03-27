@@ -1,5 +1,10 @@
 <?php
-
+	session_start();
+	if ($_SESSION['loggedIn'] == "TRUE"){
+		$user = $_SESSION['user'];
+	}else{
+		header("Location: default.html");
+	}
 
 ?>
 
@@ -72,11 +77,11 @@
                 <li><a href="manageData.php">Manage existing files</a></li>
               </ul>
             </li>
-            <li><a href="createPlot.html">Create Plot</a></li>
-            <li><a href="savedProjects.html">Saved Projects</a></li>
+            <li><a href="createPlot.php">Create Plot</a></li>
+            <li><a href="savedProjects.php">Saved Projects</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="cgi-bin/logout.php">Logout</a></li>
+            <li><a href="scripts/logout.php">Logout</a></li>
           </ul>
       </div>
     </nav>
@@ -121,21 +126,17 @@
 
 
     </div> <!-- /container -->
-	<footer>
+    <footer>
         <div class="container">
             <div class="row">
                 <div class="col-lg-12">
                     <ul class="list-inline">
                         <li>
-                            <a href="#">Home</a>
+                            <a href="default.html">Home</a>
                         </li>
                         <li class="footer-menu-divider">&sdot;</li>
                         <li>
-                            <a href="plot.html">Plot</a>
-                        </li>
-                        <li class="footer-menu-divider">&sdot;</li>
-                        <li>
-                       <a href="#">About</a>
+                       <a href="#">Reference Document</a>
                         </li>
                         
                         <li class="footer-menu-divider">&sdot;</li>
@@ -160,7 +161,7 @@
     	//dynamically populates the core list
     	$(document).ready(function(){
     		$.ajax({
-    			url:"cgi-bin/populateCores.php",
+    			url:"scripts/populateCores.php",
     			type:'post',
     			success:function(response){
     				response = JSON.parse(response);
@@ -258,7 +259,7 @@
 	$("#coreDropdown").change(function(){
 		coreID = $(this).val();
 		$.ajax({
-			url:"cgi-bin/checkChronologyStatus.php",
+			url:"scripts/checkChronologyStatus.php",
 			type:"POST",
 			success:function(response){
 				console.log(response)
@@ -297,7 +298,7 @@
     			}
     		}
     		$.ajax({
-    			url:"cgi-bin/processNewChronology_Metadata.php",
+    			url:"scripts/processNewChronology_Metadata.php",
     			type:"POST",
     			data:{
     				coreName:coreName,
@@ -317,7 +318,7 @@
     			}
     		})
     		$.ajax({
-    			url:"cgi-bin/processNewChronology_File.php",
+    			url:"scripts/processNewChronology_File.php",
     			type:"POST",
     			data:formData,
     			xhr: function(){
@@ -341,7 +342,7 @@
     					alert("error saving datafile to server.")
     				}
     			},
-    			cahce:false,
+    			cache:false,
     			contentType:false,
     			processData:false	
     		})

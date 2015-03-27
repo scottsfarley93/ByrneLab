@@ -4,19 +4,19 @@ session_start();
 if (isset($_POST['config'])){
 	$c = $_POST['config'];
 }else{
-	$response = array("success" => "false", "error" => "true", "user"=>$user, $coreURL=>$coreURL, "timestamp"=>$n, message => "No configuration file received.");
+	$response = array("success" => "false", "error" => "true", "user"=>$user, message => "No configuration file received.");
 	$R = json_encode($response);
 	echo $R;
 }
-if(isset($_SESSION['username'])){
-	$user = $_SESSION['username'];
+if(isset($_SESSION['user'])){
+	$user = $_SESSION['user'];
 }else{
-	$user = 'scottsfarley';
+	$user = '';
 }
 if (isset($_POST['core'])){
 	$core = $_POST['core'];
 }else{
-	$response = array("success" => "false", "error" => "true", "user"=>$user, $coreURL=>$coreURL, "timestamp"=>$n, message => "No core received.");
+	$response = array("success" => "false", "error" => "true", "user"=>$user, message => "No core received.");
 	$R = json_encode($response);
 	echo $R;
 }
@@ -30,11 +30,11 @@ fclose($f);
 $sql = "INSERT INTO `SavedProjects` Values (Default, '$user', '$core', Default, '$fname')";
 $query = mysqli_query($connection, $sql);
 if (!$query){
-	$response = array("success" => "false", "error" => "true", "user"=>$user, $coreURL=>$coreURL, "timestamp"=>$n, message => "Database error.");
+	$response = array("success" => "false", "error" => "true", "user"=>$user, "core"=>$coreURL, "timestamp"=>$n, message => "Database error.");
 	$R = json_encode($response);
 	echo $R;
 }else{
-	$response = array("success" => "true", "error" => "false", "user"=>$user, $coreURL=>$coreURL, "timestamp"=>$n);
+	$response = array("success" => "true", "error" => "false", "user"=>$user, "core"=>$coreURL, "timestamp"=>$n);
 	$R = json_encode($response);
 	echo $R;
 }

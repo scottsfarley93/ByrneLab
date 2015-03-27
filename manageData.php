@@ -1,4 +1,10 @@
 <?php
+	session_start();
+	if ($_SESSION['loggedIn'] == "TRUE"){
+		$user = $_SESSION['user'];
+	}else{
+		header("Location: default.html");
+	}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -210,6 +216,7 @@
     		$.ajax({
     			url:"scripts/dataToJSON.php",
     			type:"POST",
+    			contentType: "json",
     			success:function(response){
     				response =JSON.parse(response);
     				coreDataResponse = response;
