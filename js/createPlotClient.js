@@ -1,7 +1,7 @@
 //THIS FILE IS createPlotClient
 //This file handles setting object properties and saving them into a configuration file.  No actual data display is done in this file.
 //TODO: 1.  fix subtotal coloring
-console.log("Running version 2.0.4")
+console.log("Running version 3.0.1")
 ////////////////config keeps to graphing paramters and will be passed to the server with everything necessary to draw the graph////////
 config = {
 	title : "", //title of plot to be displayed
@@ -16,6 +16,7 @@ config = {
 				fileIndex : -1,
 				fieldName : "",
 			},
+			sumMatrix : []
 		},
 		subtotals: {
 			//controls the generation of subtotal fields.  Will be calculated at runtime. 
@@ -151,6 +152,8 @@ var swap = function(theArray, indexA, indexB) {
     theArray[indexA] = theArray[indexB];
     theArray[indexB] = temp;
 };
+var dataCollected = false;
+var propertiesCollected = false;
 
 //get the list of cores from the server
 $.ajax({
@@ -201,10 +204,12 @@ function addSubtotal(){
 	var add = "<div>" + label + textInput + "</div>"
 	subtotals[numSubtotals] = [];
 	config['normalization']['subtotals'][numSubtotals] = []; 
+	config['normalization']['subtotals']['subtotals'][numSubtotals] = []
 	subtotalElements[numSubtotals] = [];
 	$("#subtotalTextHolder").append(add);
 	$(".subtotalEntry").on('click', updateSubtotal);
 	$(".subtotal-checkbox").prop('disabled', false)
+	$("#removeSubtotalButton").show();
 }
 
 function updateSubtotal(){
@@ -234,7 +239,9 @@ function addToSubtotal(){
 		parent.css('color', color)
 		if(!$.isEmptyObject(subtotals)){
 			subtotals[current_subtotal].push(name);
-			config['normalization']['subtotals'][current_subtotal].push({'file':dataNum, 'number':dataNum, 'name':name})
+			var obj = {'file':dataFile, 'fileIndex':dataNum, 'name':name, "matrix":[]};
+			config['normalization']['subtotals']['subtotals'][current_subtotal].push(obj);
+			console.log(obj);
 			subtotalElements[current_subtotal].push($(this))
 			current_val = $(st).val()
 			new_val= current_val + name + ", "
@@ -246,7 +253,7 @@ function addToSubtotal(){
 		current_val = subtotals[current_subtotal]
 		index = subtotals[current_subtotal].indexOf(name)
 		subtotals[current_subtotal].splice(index, 1)
-		config['normalization']['subtotals'][current_subtotal].splice(index, 1);
+		config['normalization']['subtotals']['subtotals'][current_subtotal].splice(index, 1);
 		subtotalElements[current_subtotal].splice(index, 1)
 		i = 0
 		val = ""
@@ -256,6 +263,7 @@ function addToSubtotal(){
 		}
 		$(st).val(val)
 	}
+	console.log(config['normalization']['subtotals']['subtotals'][current_subtotal]);
 }
 function removeSubtotal(){
 	var elementToRemove = $("#subtotal_" + numSubtotals).parent();
@@ -276,10 +284,12 @@ function removeSubtotal(){
 		$(".taxon-subtotal").prop('disabled', true);
 		$(".subtotal-row").css('color', 'black')
 	}
-	
+	if (config.normalization.subtotals.numSubtotals == 0){
+		$("#removeSubtotalButton").hide();
+	}
 }
 $("#removeSubtotalButton").on('click', removeSubtotal)
-
+$("#removeSubtotalButton").hide();
 
 //get a list of taxa from the server for that core
 function loadTaxa(){$.ajax({
@@ -351,12 +361,9 @@ function loadTaxa(){$.ajax({
 		})
 		$("#noSumInput").change(function(){
 			if ($(this).prop('checked')){
-				console.log("Checked");
 				config.normalization.dataSum.doDataSum = false;
 			}else{
-				console.log("unchecked");
 				config.normalization.dataSum.doDataSum = true;
-				
 			}
 		})
 		//apfac --> volume
@@ -364,13 +371,16 @@ function loadTaxa(){$.ajax({
 			var selected = $(':selected', this);
 			var index = selected.index();
     		s = selected.closest('optgroup').attr('label')
+    		console.log(index)
     		config.normalization.apfac['volumeVolumeField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
     		config.normalization.apfac['doVolumeApfac'] = true
 		})
-		$("#volumeConctrolSelect").change(function(){
+		$("#volumeControlSelect").change(function(){
 			var selected = $(':selected', this);
 			var index = selected.index();
     		s = selected.closest('optgroup').attr('label')
+    		console.log(s)
+    		console.log(index)
     		config.normalization.apfac['volumeControlField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
     		config.normalization.apfac['doVolumeApfac'] = true
 		})
@@ -378,13 +388,16 @@ function loadTaxa(){$.ajax({
 			var selected = $(':selected', this);
 			var index = selected.index();
     		s = selected.closest('optgroup').attr('label')
+    		console.log(s)
 			config.normalization.apfac['massMassField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
 			config.normalization.apfac['doMassApfac'] = true
 		})
 		$("#massControlSelect").change(function(){
+			
 			var selected = $(':selected', this);
 			var index = selected.index();
     		s = selected.closest('optgroup').attr('label')
+    		console.log(s)
 			config.normalization.apfac['massMassField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
 			config.normalization.apfac['doMassApfac'] = true
 		})
@@ -392,6 +405,7 @@ function loadTaxa(){$.ajax({
 			var selected = $(':selected', this);
 			var index = selected.index();
     		s = selected.closest('optgroup').attr('label')
+    		console.log(s)
 			config.normalization.apfac['massYearField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
 			config.normalization.apfac['doMassApfac'] = true
 		})
@@ -416,7 +430,7 @@ function loadTaxa(){$.ajax({
 						var n = item['name'];
 						var f = item['file'];
 						if (n == name && f == file){
-							cofnig['taxa'].splice(i, 1);
+							config['taxa'].splice(i, 1);
 							currentIndex -= 1;
 						}
 					}
@@ -541,18 +555,19 @@ var numtaxa;
 function showGraphingOptions(){
 	//adds the necessary html elements to the last page of the createplot page
 	$("#taxaStylingList").empty();
+	numtaxa = config['taxa'].length
 	//reorder the taxa in the config object so they show up in order
-	for (var i=0; i< config['taxa'].length; i++){
+	if (numtaxa > 1){	for (var i=0; i< numtaxa; i++){
 		var index = config['taxa'][i]['plotIndex'];
 		if (index != i){
 			swap(config['taxa'], index, i);
 		}
-	}
-	taxa = config['taxa'];
-	numtaxa = taxa.length;
-	console.log(numtaxa);
+	}}
+	console.log(config['taxa']);
+	console.log("Working to loop");
 	for (var i=0; i < numtaxa; i++){
-		t = taxa[i]
+		t = config['taxa'][i]
+		console.log(t);
 		tName = t['name'];
 		tFile = t['file'];
 		tPlotIndex = t['plotIndex'];
@@ -569,8 +584,8 @@ function showGraphingOptions(){
 			tString += "<option val='sumField'>Percentage of Sum Field</option>"
 		}
 		if (config['normalization']['subtotals']['numSubtotals'] > 0){
-			for (var q = 0; i< config['normalization']['subtotals']['numSubtotals']; q++){
-				tString += "<option val='sub'" + i + "'>Percentage of Subtotal #" + (i+1) + "</option>"
+			for (var q = 0; q< config['normalization']['subtotals']['numSubtotals']; q++){
+				tString += "<option val='sub'" + q + "'>Percentage of Subtotal #" + (q+1) + "</option>"
 			}
 		}
 		if (config['normalization']['apfac']['doVolumeApfac']== true){
@@ -603,7 +618,6 @@ function showGraphingOptions(){
 		$(".btn").click(function(){
 			if (page == 9){
 				console.log("Gathering curve properties from input forms.")
-				//actually submit the config object to the server for graphing
 				//gather the properties from the curve styling
 				for (var i=0; i< numtaxa; i++){
 					curveLabel = $("#tNameField" + i).val();
@@ -616,9 +630,12 @@ function showGraphingOptions(){
 					bottomLabel = $("#bottom" + i).val();
 					italics = $("#italics" + i).prop('checked');
 					plotIndex = $("#plotIndex" + i).val();
+					console.log(plotIndex);
+					console.log(fill);
 					for (var q=0; q< config['taxa'].length; q++){
 						//iterate through the config file to find the right place to dump the properties
 						var taxon = config['taxa'][q]
+						console.log(taxon);
 						if (taxon.plotIndex == plotIndex){//each taxon has a unique plot index so this should be an okay way to id the properties
 							//update properties in the config
 							config['taxa'][q]['fill'] = fill;
@@ -631,9 +648,11 @@ function showGraphingOptions(){
 						}
 					}
 				}
+				propertiesCollected= true;
 			}
 		})
 }
+
 //modal window handlers
 //hide remove buttons at first
 $("#removeStratLayerButton").hide();
@@ -686,7 +705,7 @@ $("#addZoneButton").click(function(){
 	$("#zoneTable").append(s);
 })
 
-$("removeZoneButton").click(function(){
+$("#removeZoneButton").click(function(){
 	config['zonation']['numZones'] -= 1;
 	currentZone = config['zonation']['numZones'];
 	if (currentZone == 0){
@@ -695,7 +714,7 @@ $("removeZoneButton").click(function(){
 	$("#zoneRow" + currentZone).remove();
 })
 //update the zonation config object when the save changes button is clicked
-$("saveZonation").click(function(){
+$("#saveZonation").click(function(){
 	console.log('Saving zonation to configuration');
 	var list = $("#zoneTable");
 	var rows = list.children();
@@ -793,29 +812,137 @@ $(".btn").click(function(){
 			$("#stylingDiv").hide();
 			$("#extraFeaturesDiv").hide()
 			$("#orderCurvesMenu").addClass("active")
-			$("#normalizationMenu").removeClass('active list-group-item-success')
+			$("#normalizationMenu").removeClass('active list-group-item-success')			
+			break;
+		case 4:
+		//data normalization options --> total sum generation, subtotals, apfac
+			$("#plotTitleDiv").hide()
+			$("#selectCoreDiv").hide()
+			$("#selectTaxaDiv").hide()
+			$("#orderCurvesDiv").hide()
+			$("#dimensionsDiv").hide()
+			$("#axesDiv").hide();
+			$("#stylingDiv").hide();
+			$("#pageTitle").text("Normalization Calculations");
+			$("#orderCurvesMenu").addClass('list-group-item-success').removeClass('active')
+			$("#normalizationDiv").show();
+			$("#extraFeaturesDiv").hide()
+			$("#normalizationMenu").addClass("active")
+			$("#dimensionsMenu").removeClass('active list-group-item-success')
+			//get the order correct
+			var numTaxaInList = $('#orderList').length
+			var lst = $("#orderList")
+			break;
+		case 5:
+		//plot dimensions
+			$("#plotTitleDiv").hide()
+			$("#selectCoreDiv").hide()
+			$("#selectTaxaDiv").hide()
+			$("#orderCurvesDiv").hide()
+			$("#normalizationDiv").hide();
+			$("#axesDiv").hide();
+			$("#stylingDiv").hide();
+			$("#pageTitle").text("Plot Dimensions");
+			$("#dimensionsDiv").show()
+			$("#normalizationMenu").addClass('list-group-item-success').removeClass('active')
+			$("#extraFeaturesDiv").hide()
+			$("#dimensionsMenu").addClass("active")
 			//taxa are added and removed in the loadTaxa function
 			//csv files are parsed and values are added to the matrix in the config 
+			//normalization taxa are added in the dropdown menus
 			//get a list of the datafiles in use
 			var filesList = [];
 			var numTaxa = config['taxa'].length;
-				//for all taxa, find what file the values are stored in
-				//different taxa may be in the same file, but all taxa must be contained in one file
-				//in addition to the file, we want to know what index to lookup from, so we store an array of file
-				fileLookup = {}; //object of arrays
-				for (var i=0; i< numTaxa; i++){
-					//first iterate and find the files we need
-					var taxon = config['taxa'][i]
-					var configFile = taxon['file']
+			//for all taxa, find what file the values are stored in
+			//different taxa may be in the same file, but all taxa must be contained in one file
+			//in addition to the file, we want to know what index to lookup from, so we store an array of file
+			fileLookup = {}; //object of arrays
+			//first go through the taxa to be graphed
+			for (var i=0; i< numTaxa; i++){
+				//first iterate and find the files we need
+				var taxon = config['taxa'][i]
+				var configFile = taxon['file']
+				if (fileLookup[configFile] === undefined || fileLookup[configFile].length == 0){
 					fileLookup[configFile] = [];
 				}
-				for (var i=0; i<numTaxa; i++){
-					//now populate the arrays with the file indeces that we need
-					var taxon = config['taxa'][i]
-					var configFile = taxon['file']
-					var fileIndex = taxon['fileIndex'] 
-					fileLookup[configFile].push(fileIndex);
+				var index = taxon['fileIndex'];
+				if (fileLookup[configFile].indexOf(index) == -1){
+					fileLookup[configFile].push(index);
 				}
+			}
+			//now go through the normalizations
+			//first subtotals
+			var subtotals = config['normalization']['subtotals']['subtotals'];
+			for (var i=0; i<config['normalization']['subtotals']['numSubtotals']; i++){
+				console.log(i);
+				var st = subtotals[i + 1];
+				console.log(st);
+				for (var x = 0; x< st.length; x++){
+					var item = st[x];
+					console.log(item);
+					var file = item['file'];
+					console.log(file)
+					var index = item['fileIndex'];
+					console.log(index);
+					if (fileLookup[file] === undefined || fileLookup[file].length == 0){
+						fileLookup[file] = [];
+					}
+					var index = item['fileIndex'];
+					if (fileLookup[file].indexOf(index) == -1){
+						fileLookup[file].push(index);
+					}
+				}
+			}
+			//now the apfacs if they are enabled
+			if (config['normalization']['apfac']['doMassApfac']){
+				file1 = config['normalization']['apfac']['massMassField']['file']
+				fileLookup[file1] = []
+				if (fileLookup[file1] === undefined || fileLookup[file1].length == 0){
+					fileLookup[file1] = [];
+				}
+				var index = config['normalization']['apfac']['massMassField']['fileIndex'];
+				if (fileLookup[file2].indexOf(index) == -1){
+					fileLookup[file1].push(index);
+				}
+				file2 = config['normalization']['apfac']['massControlField']['file'];
+				if (fileLookup[file2] === undefined || fileLookup[file2].length == 0){
+					fileLookup[file2] = [];
+				}
+				var index = config['normalization']['apfac']['massControlField']['fileIndex'];
+				if (fileLookup[file2].indexOf(index) == -1){
+					fileLookup[file2].push(index);
+				}
+			}
+			if (config['normalization']['apfac']['doVolumeApfac']){
+				file1 = config['normalization']['apfac']['volumeVolumeField']['file'];
+				if (fileLookup[file1] === undefined || fileLookup[file1].length == 0){
+					fileLookup[file1] = [];
+				}
+				var index = config['normalization']['apfac']['volumeVolumeField']['fileIndex'];
+				if (fileLookup[file1].indexOf(index) == -1){
+					fileLookup[file1].push(index);
+				}
+				file2 = config['normalization']['apfac']['volumeControlField']['file'];
+				if (fileLookup[file2] === undefined || fileLookup[file2].length == 0){
+					fileLookup[file2] = [];
+				}
+				var index = config['normalization']['apfac']['volumeControlField']['fileIndex'];
+				if (fileLookup[file2].indexOf(index) == -1){
+					fileLookup[file2].push(index);
+				}
+			}
+			//sumtotal field
+			if (config['normalization']['dataSum']['doDataSum']){
+				file = config['normalization']['dataSum']['sumField']['file'];
+				if (fileLookup[file] === undefined || fileLookup[file].length == 0){
+					fileLookup[file] = [];
+				}
+				var index = config['normalization']['dataSum']['sumField']['fileIndex'];
+				if (fileLookup[file].indexOf(index) == -1){
+					fileLookup[file].push(index);
+				}
+			}
+			console.log(fileLookup)
 			filesList = Object.keys(fileLookup)
 			///get the file names via the database
 			console.log(filesList);
@@ -861,76 +988,147 @@ $(".btn").click(function(){
 					f = Papa.parse(fFile, {
 						download: true,
 						worker: true,
-						header: true,
+						header: false,
 						complete: function(parsedFile){
 							var data = parsedFile['data'];
 							var numLevels = data.length; 
 							for (var x=0; x< indeces.length; x++){
 								//iterate through the taxa in this file
 								index = indeces[x];
-								for(var q=0; q< config['taxa'].length; q++){
+								//check depth column and get index
+								var depthIndex;
+								var header = data[0];
+								if (header.indexOf('depth') != -1){
+									depthIndex = header.indexOf('depth');
+								}
+								if (header.indexOf('Depth') != -1){
+									depthIndex = header.indexOf('Depth')
+								}
+								if (depthIndex == -1 || depthIndex == null || depthIndex == undefined){
+									alert("Incorrectly formatted data file.  Please refer to software manual. Aborting script.");
+									throw "No depth column found in data file.  Aborting."
+								}
+								for (var q=0; q< config['taxa'].length; q++){
 									//put the values into the right place in the config file
 									configTaxon = config['taxa'][q];
 									if ((configTaxon['file'] == fName) && (configTaxon['fileIndex'] == index)){
 										values = [];
 										for (var w=0; w<numLevels; w++){
 											//iterate through the levels and collect the values
-											var level = data[w];
-											var val = level[x];
-											if (level['depth'] != undefined){
-												var depth = level['depth'];
-											}else if (level['Depth'] != undefined){
-												var depth = level['Depth'];
-											}else{
-												throw "No depth column found.  Please refer to software manual."
-											}
-											console.log(val)
+											var level = data[w]; 
+											var val = level[index]; 
+											var depth = level[depthIndex];
 											values.push({depth: depth, value: val});
-											config['taxa'][q]['valuesMatrix'] = values;
+										}
+										config['taxa'][x]['valuesMatrix'] = values;
+										console.log("Updated values for: " + config['taxa'][q]['name']);
+									}
+								}
+								//now place the normalizations
+								if (config['normalization']['dataSum']['doDataSum']){
+									var file = config['normalization']['dataSum']['sumField']['file'];
+									var fileIndex = config['normalization']['dataSum']['sumField']['fileIndex'];
+									if ((file == fName) && (fileIndex == index)){
+										values = [];
+										for (var w = 0; w< numLevels; w++){
+											var level = data[w];
+											var val = level[index];
+											var depth = level[depthIndex];
+											values.push({depth:depth, value: val})
+										}
+										config['normalization']['dataSum']['sumMatrix'] = values;
+										console.log("Updated values for: data sum normalization");
+									}
+								}
+								if (config['normalization']['apfac']['doMassApfac']){
+									var file = config['normalization']['apfac']['massMassField']['file'];
+									var fileIndex = config['normalization']['apfac']['massMassField']['fileIndex'];
+									if ((file == fName) && (fileIndex == index)){
+										values = [];
+										for (var w = 0; w< numLevels; w++){
+											var level = data[w];
+											var val = level[index];
+											var depth = level[depthIndex];
+											values.push({depth:depth, value: val});
+										}
+										config['normalization']['normalization']['apfac']['massMassMatrix'] = values;
+										console.log("Updated values for: mass value field");
+									}
+									//can't do this in a single loop because these fields may be located in different files
+									var file = config['normalization']['apfac']['massControlField']['file'];
+									var fileIndex = config['normalization']['apfac']['massControlField']['fileIndex'];
+									if ((file == fName) && (fileIndex == index)){
+										values = [];
+										for (var w = 0; w< numLevels; w++){
+											var level = data[w];
+											var val = level[index];
+											var depth = level[depthIndex];
+											values.push({depth:depth, value: val});
+										}
+										config['normalization']['normalization']['apfac']['massControlMatrix'] = values;
+										console.log("Updated values for: mass control field");
+									}
+								}
+								if (config['normalization']['apfac']['doVolumeApfac']){
+									var file = config['normalization']['apfac']['volumeVolumeField']['file'];
+									var fileIndex = config['normalization']['apfac']['volumeVolumeField']['fileIndex'];
+									if ((file == fName) && (fileIndex == index)){
+										values = [];
+										for (var w = 0; w< numLevels; w++){
+											var level = data[w];
+											var val = level[index];
+											var depth = level[depthIndex];
+											values.push({depth:depth, value: val});
+										}
+										config['normalization']['apfac']['volumeVolumeMatrix'] = values;
+										console.log("Updated values for: volume value field");
+									}
+									//can't do this in a single loop because these fields may be located in different files
+									var file = config['normalization']['apfac']['volumeControlField']['file'];
+									var fileIndex = config['normalization']['apfac']['volumeControlField']['fileIndex'];
+									if ((file == fName) && (fileIndex == index)){
+										values = [];
+										for (var w = 0; w< numLevels; w++){
+											var level = data[w];
+											var val = level[index];
+											var depth = level[depthIndex];
+											values.push({depth:depth, value: val});
+										}
+										config['normalization']['apfac']['volumeControlMatrix'] = values;
+										console.log("Updated values for: volume control matrix");
+									}
+								}
+								for (var k=0; k<config['normalization']['subtotals']['numSubtotals']; k++){
+									st = config['normalization']['subtotals']['subtotals'][k+1];
+									for (var p=0; p<st.length; p++){
+										item = st[p];
+										file =item['file'];
+										fileIndex = item['fileIndex'];
+										if ((file == fName) && (fileIndex == index)){
+											matrix = item['matrix'];
+											values = [];
+											for (var w =0; w<numLevels; w++){
+												var level = data[w];
+												var val = level[index];
+												var depth = level[depthIndex];
+												values.push({depth:depth, value: val});
+											}
+											config['normalization']['subtotals']['subtotals'][k+1][p]['matrix'] = values
+											console.log("Updated values for: Subtotal #" + k);
 										}
 									}
 								}
-							}							
+								console.log("Iteration complete");
+							}
+							dataCollected = true;
+							console.log("All data has been collected from data files.")		
+							console.log(config['taxa']);		
 						}
 					})
 					
 				}
 			};
-			
-			break;
-		case 4:
-		//data normalization options --> total sum generation, subtotals, apfac
-			$("#plotTitleDiv").hide()
-			$("#selectCoreDiv").hide()
-			$("#selectTaxaDiv").hide()
-			$("#orderCurvesDiv").hide()
-			$("#dimensionsDiv").hide()
-			$("#axesDiv").hide();
-			$("#stylingDiv").hide();
-			$("#pageTitle").text("Normalization Calculations");
-			$("#orderCurvesMenu").addClass('list-group-item-success').removeClass('active')
-			$("#normalizationDiv").show();
-			$("#extraFeaturesDiv").hide()
-			$("#normalizationMenu").addClass("active")
-			$("#dimensionsMenu").removeClass('active list-group-item-success')
-			//get the order correct
-			var numTaxaInList = $('#orderList').length
-			var lst = $("#orderList")
-			break;
-		case 5:
-		//plot dimensions
-			$("#plotTitleDiv").hide()
-			$("#selectCoreDiv").hide()
-			$("#selectTaxaDiv").hide()
-			$("#orderCurvesDiv").hide()
-			$("#normalizationDiv").hide();
-			$("#axesDiv").hide();
-			$("#stylingDiv").hide();
-			$("#pageTitle").text("Plot Dimensions");
-			$("#dimensionsDiv").show()
-			$("#normalizationMenu").addClass('list-group-item-success').removeClass('active')
-			$("#extraFeaturesDiv").hide()
-			$("#dimensionsMenu").addClass("active")
+
 			break
 			
 		case 6:
@@ -1016,40 +1214,60 @@ $(".btn").click(function(){
 			$("#stylingMenu").addClass("active")
 			$("#nextButton").html("Plot <span class='glyphicon glyphicon-send'></span>").removeClass('btn-primary').addClass('btn-success')
 			showGraphingOptions();
+			if (config['taxa'].indexOf(undefined) != -1){
+				alert("Taxa contains an undefined element!  Aborting...")
+				throw "Taxa contains undefined element";
+			}
 			break
 		case 9:
-			var now = new Date();
-			var nowString = now.getFullYear() + "-" + now.getMonth() + "-" + now.getDay() + ' ' + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
-			config.createdAt = nowString;
-			config.lastDrawn = nowString;
-			var c = JSON.stringify(config)
-			$.ajax({
-				url:"scripts/saveDiagramConfig.php",
-				type:"POST",
-				error:function(error){
-					alert("Error gathering data from the server.  Please try again later.");
-					console.log("TAXA AJAX ERROR: " + error);
-				},
-				data:{
-					config: c,
-					core: config['core']
-				},
-				success: function(response){
-					r = JSON.parse(response);
-					if (r['success'] == 'true'){
-						console.log(response);
-						user = r['user'];
-						core = r['core'];
-						t = r['timestamp'];
-						//pass the correct params to the url so we can fetch the right cpn file.
-						url = "drawDiagram.php?user=" + user + "&core=" + core + "&creationTime=" + t
-						window.location.replace(url);
-					}
-					if (r['error'] == 'true'){
-						alert(r['message'])
-					}
+			function submit(){
+				if (propertiesCollected){
+					var now = new Date();
+					var nowString = now.getFullYear() + "-" + now.getMonth() + "-" + now.getDay() + ' ' + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+					config.createdAt = nowString;
+					config.lastDrawn = nowString;
+					var c = JSON.stringify(config)
+
+					$.ajax({
+						url:"scripts/saveDiagramConfig.php",
+						type:"GET",
+						contentType: "json",
+						error:function(error){
+							alert("Error gathering data from the server.  Please try again later.");
+							console.log("TAXA AJAX ERROR: " + error);
+						},
+						data:{
+							config: c,
+							core: config['core']
+						},
+						success: function(r){
+							console.log(r)
+							r = JSON.parse(r);
+							if (r['success'] == 'true'){
+								console.log(r);
+								user = r['user'];
+								core = r['core'];
+								t = r['timestamp'];
+								//pass the correct params to the url so we can fetch the right cpn file.
+								url = "drawDiagram.php?user=" + user + "&core=" + core + "&creationTime=" + t
+								console.log(url)
+								document.location.href = url;
+							}else if (r['error'] == 'true'){
+								alert(r['message'])
+							}
+						},
+						beforeSend: function(){
+							console.log("Sending diagram config.");
+							console.log(config);
+						},
+						cache: false
+					})
+				}else{
+					console.log("Waiting...");
+					setTimeout(submit, 500);
 				}
-			})
+			}
+			submit();
 
 	}
 })
