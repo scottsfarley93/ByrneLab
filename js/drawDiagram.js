@@ -285,20 +285,8 @@ function drawDiagram(config){
 		taxAxis = d3.svg.axis()
 			.scale(taxScale)
 			.orient("bottom")
-		var taxAxisElement = plotElements['svg'].append('g')
-			.attr('class', 'x axis')
-			.call(taxAxis)
-			.attr('transform', 'translate(0,' + axisBottom + ')')
-		if (taxmax < 5){
-			taxAxisElement.selectAll('text')
-			.style('text-anchor', 'end')
-			.attr('dx', '-.8em')
-			.attr('dy', '.15em')
-			.attr('transform', function(d){
-				return 'rotate(-45)'})	
-		}
 		var curveStart = {depth: +config['axes']['minDepth'], norm: 0}
-		var curveEnd = {depth: +config['axes']['maxDepth'], norm: 0}
+		var curveEnd = {depth: (+config['axes']['maxDepth']), norm: 0}
 		taxValues.unshift(curveStart)
 		taxValues.push(curveEnd)
 		var yscale = plotElements['yScale']
@@ -306,9 +294,9 @@ function drawDiagram(config){
 			.x(function(d){return taxScale(d.norm)})
 			.y(function(d){return yscale(d.depth)})
 		var pathvals = pathFunction(taxValues);
-		var strokeColor = taxon['outlineColor'];
+		var strokeColor = taxon['outline'];
 		console.log("Drawing outline in color: " + strokeColor)
-		var fillColor = taxon['fillColor'];
+		var fillColor = taxon['fill'];
 		console.log("Drawing fill in color: " + fillColor)
 		var curve = plotElements['svg'].append('path')
 			.attr('d', pathvals)
@@ -328,7 +316,18 @@ function drawDiagram(config){
 				.attr('stroke', strokeColor)
 				.attr('fill', fillColor)
 		}
-			
+		var taxAxisElement = plotElements['svg'].append('g')
+			.attr('class', 'x axis')
+			.call(taxAxis)
+			.attr('transform', 'translate(0,' + axisBottom + ')')
+		if (taxmax < 5){
+			taxAxisElement.selectAll('text')
+			.style('text-anchor', 'end')
+			.attr('dx', '-.8em')
+			.attr('dy', '.15em')
+			.attr('transform', function(d){
+				return 'rotate(-45)'})	
+		}	
 		cursor += taxmax + 1.5
 	}
 }
@@ -347,32 +346,14 @@ function drawPrimaryAxis(tickInt){
 		xVal += (+config['plotWidth'] * +rules['secondaryAxis']) + (+config['plotWidth'] * +rules['axisPadding']);
 	}
 	var xEnd = xVal + (+config['plotWidth'] * +rules['primaryAxis']);
-	axis.append("line")
-		.attr('y1', +plotElements['axisTop'])
-		.attr('y2', +plotElements['axisBottom'])
-		.attr('x1', xEnd)
-		.attr('x2', xEnd)
-	var topCap = axis.append('line')
-		.attr('y1', +plotElements['axisTop'])
-		.attr('y2', +plotElements['axisTop'])
-		.attr('x1', xEnd)
-		.attr('x2', (xEnd -10))
-	var topCap = axis.append('line')
-		.attr('y1', +plotElements['axisBottom'])
-		.attr('y2', +plotElements['axisBottom'])
-		.attr('x1', xEnd)
-		.attr('x2', (xEnd -10))
-	var values;
-	if (config['axes']['primaryAxisCategory'] == "Depth"){
-		console.log("Primary axis is depth.")
-		
-	}else if (config['axes']['priamaryAxisCategory'] == "Time"){
-		console.log("Primary axis is chronology")
-		
-	}else{
-		throw "Unexpected axis category.  Aborting!"
-	}
-	plotElements['primaryAxis'] = axis
+	var scale = plotElements['yScale'];
+	var primaryAxis = d3.svg.axis()
+		.scale(scale)
+		.orient('left')
+	var primaryAxisElement = plotElements['svg'].append('g')
+		.attr('class', 'y axis')
+		.call(primaryAxis)
+		.attr('transform', 'translate(' + xEnd + ") ")
 }	
 
 function drawSecondaryAxis(tickInt){
@@ -410,63 +391,7 @@ function drawSecondaryAxis(tickInt){
 	plotElements['secondaryAxis'] = axis
 	
 }
-function drawCurve(taxon, xmin, xmax){
-	//x-scaling:
-	//xmin and xmax will be determined in the main function as canvas properties
-	//a d3 scale will be calculated for this matrix
-	//very possible to do a log scale if desireable
-	var matrix = taxon['valuesMatrix'];
-	if (taxon['show5xCurve'] == 'true' || taxon['show5xCurve'] == true){
-		var taxmax = d3.max(matrix, function(d){return d.norm * 5})
-	}else{
-		var taxmax = d3.max(matrix, function(d){return d.norm})
-	}
-	
-	var xScale = d3.scale.linear()
-		.domain([0, taxmax])
-		.range([xmin, xmax])
-	var scaledVals = [];
-	var axis = d3.svg.axis()
-		.scale(xScale)
-		.orient('bottom')
-	var taxAxis = plot.append('g')
-		.attr('class', 'x axis')
-		.attr('transform', 'translate(0,' + +plotElements['axisBottom'] + ")")
-		.call(axis)
-		.selectAll('text')
-			.style('text-anchor', 'end')
-			.attr('dx', '-.8em')
-			.attr('dy', '.15em')
-			.attr('transform', function(d){
-				return 'rotate(-45)'})	
-	var pathFunction = d3.svg.line()
-			.x(function(d){return Math.round(d.norm * 100) / 100})
-			.y(function(d){return Math.round(d.depth * 100)/ 100})
 
-	var pathvals = pathFunction(matrix);
-	var strokeColor = taxon['outlineColor'];
-	var fillColor = taxon['fillColor'];
-	var curve = plotElements['svg'].append('path')
-		.attr('d', pathvals)
-		.attr('stroke', strokeColor)
-		.attr('fill', fillColor)
-	if (taxon['show5xCurve'] == 'true' || taxon['show5xCurve'] == true){
-		//add the exag curve
-		var exagFunction = d3.svg.line()
-				.x(function(d){return d.norm * 5})
-				.y(function(d){return d.depth})
-		var pathvals = exagFunction(matrix);
-		var strokeColor = '#ffffff';
-		var fillColor = '#ffffff';
-		var curve = plotElements['svg'].append('path')
-			.attr('d', pathvals)
-			.attr('stroke', strokeColor)
-			.attr('fill', fillColor)
-	}
-}
-function drawBarGraph(matrix){
-	
-}
 	
 	
 	/**

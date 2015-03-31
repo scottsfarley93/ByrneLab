@@ -638,8 +638,6 @@ function showGraphingOptions(){
 					italics = $("#italics" + i).prop('checked');
 					plotIndex = $("#plotIndex" + i).val();
 					console.log("Fill Color: "+ fill);
-					alert("Fill Color: " + fill)
-					alert("Outline Color: " + outline)
 					for (var q=0; q< config['taxa'].length; q++){
 						//iterate through the config file to find the right place to dump the properties
 						var taxon = config['taxa'][q]
