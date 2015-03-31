@@ -1,22 +1,23 @@
 <?php
 require_once("../database_access.php");
 session_start();
+header("Content-Type: application/json", true);
 if(isset($_SESSION['user'])){
 	$user = $_SESSION['user'];
 }else{
 	$user = '';
 }
-if (isset($_GET['config'])){
-	$c = $_GET['config'];
+if (isset($_POST['config'])){
+	$c = $_POST['config'];
 }else{
 	$response = array("success" => "false", "error" => "true", "user"=>$user, 'message' => "No configuration file received.");
 	$R = json_encode($response);
 	die($R);
 }
-if (isset($_GET['core'])){
-	$core = $_GET['core'];
+if (isset($_POST['core'])){
+	$core = $_POST['core'];
 }else{
-	$response = array("success" => "false", "error" => "true", "user"=>$user, message => "No core received.");
+	$response = array("success" => "false", "error" => "true", "user"=>$user, 'message' => "No core received.");
 	$R = json_encode($response);
 	die( $R);
 }

@@ -20,10 +20,11 @@ if(isset($_POST['creationTime'])){
 $fileName = "savedProjects/" .$user."_" . $core ."_".$time . ".cpn";
 require_once("../database_access.php");
 //tables fields are index, username, coreName, creationTimestamp, lastDrawnTimestamp, fileReference
-$sql = "INSERT INTO `SavedProjects Values(Default, '$user', $time, Default, '$fileName')";
+$sql = "INSERT INTO `SavedProjects`  Values(Default, '$user', '$core', $time, Default, '$fileName')";
 $result = mysqli_query($connection, $sql);
 if(!$result){
-	die ("Error");
+	echo mysqli_error($connection);
+	die();
 }else{
 	echo "Success";
 }

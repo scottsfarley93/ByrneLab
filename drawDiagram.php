@@ -1,6 +1,5 @@
 <?php
 require_once("database_access.php");
-session_start();
 //check credentials and get session user
 session_start();
 if ($_SESSION['loggedIn'] == "TRUE"){
@@ -54,20 +53,21 @@ if (isset($GET['core'])){
   	#plot{
   		margin: 10%;
   	}
-  	.axis path,
-	.axis line {
-	  fill: none;
-	  stroke: #000;
-	  shape-rendering: crispEdges;
-	}
-	.axis {
-   font: 10px sans-serif;
- }
+.axis text {
+  font: 10px sans-serif;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
 	  	</style>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Create Plot</title>
+    <title>Plot</title>
   <!-- Bootstrap core CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap-theme.min.css">

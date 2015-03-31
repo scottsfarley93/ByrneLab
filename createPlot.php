@@ -193,11 +193,12 @@ if ($_SESSION['loggedIn'] == "TRUE"){
         		<i>Select the dimensions of the output plot.</i>
         		<ul class='list-group'>
         			<strong>Standard Sizes:</strong>
-        			<li class='list-group-item'><input type='radio' value='0' id='standardDim1' name='page-size' width='2' height='4' units= 'in' class='dim' checked=""/>  2 x 4</li>
+        			<li class='list-group-item'><input type='radio' value='0' id='standardDim1' name='page-size' width='2' height='4' units= 'in' class='dim' />  2 x 4</li>
         			<li class='list-group-item'><input type='radio' value='1' id='standardDim2' name='page-size' width= '4' height='4' units= 'cm' class='dim'/>  4 x 6</li>
         			<li class='list-group-item'><input type='radio' value='2' id='standardDim3' name='page-size' width= '8' height='4' units= 'cm' class='dim'/>  8 x 12</li>
         			<li class='list-group-item'><input type='radio' value='3' id='standardDim4' name='page-size' width= '5' height='4' units= 'in' class='dim' />  5 x 10</li>
-        			<li class='list-group-item'><input type='radio' value='4' id='standardDim5' name='page-size' width= '8.5' height='4' units= 'cm' class='dim'/>  8.5 x 11</li>
+        			<li class='list-group-item'><input type='radio' value='4' id='standardDim5' name='page-size' width= '8.5' height='4' units= 'in' class='dim'/>  8.5 x 11</li>
+        			<li class='list-group-item'><input type='radio' value='5' id='standardDim6' name='page-size' width='page' height='page' units='in' class='dim' checked/> Fit to screen</li>
         		</ul>
         		<br />
         		<ul class='list-group' id='customPlotDims'>
@@ -211,7 +212,7 @@ if ($_SESSION['loggedIn'] == "TRUE"){
         		<i>Specify how you would like the axes to appear on your plot.</i>
         		<ul class='list-group'>
         			<strong>Primary Axis</strong>
-        			<li class='list-group-item'><input type='radio' value='Depth' id='depthAxisInput' name='primaryAxisSelect'/>   Depth</li>
+        			<li class='list-group-item'><input type='radio' value='Depth' id='depthAxisInput' name='primaryAxisSelect' checked/>   Depth</li>
         			<li class='list-group-item'><input type='radio' value='Time' id='chronAxisInput' name='primaryAxisSelect'/>   Time</li>
         		</ul>
         		<br />

@@ -35,8 +35,8 @@ for ($i=0; $i<$numFiles; $i++){
 	}else{
 		$row = mysqli_fetch_assoc($result);
 		$name = $row['DatafileName'];
-		$minDepth = $row['MinDepth'];
-		$maxDepth = $row['MaxDepth'];
+		$minDepth = intval($row['MinDepth']);
+		$maxDepth = intval($row['MaxDepth']);
 		$fileReference = $row['FileReference'];
 		//calculate total min and max depth
 		if ($maxDepth > $totalMaxDepth){

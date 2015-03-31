@@ -7,7 +7,7 @@ config = {
 	title : "", //title of plot to be displayed
 	core : "", //core identifier that holds the datasets
 	//normalization properties
-	
+	chronology: [], //matrix of depth:age pairs --> can be empty if there is no chronology file associated
 	normalization: {
 		dataSum: { // controls whether or not to make a sum field available.  Must be precalculated by the user
 			doDataSum:false,
@@ -54,8 +54,8 @@ config = {
 		secondaryAxisUnits: "", //label for units of secondary axis, eg "Years"
 		minDepth: -1, 
 		maxDepth: -1,
-		minYear: -1,
-		maxYear: -1
+		minAge: -1,
+		minAge: -1
 	},
 	hasChronologyFile: false,
 	extraFeatures: false, // could be extended to control dendrogram and/or stratigraphy when those features are working
@@ -74,6 +74,7 @@ config = {
 			bottomLabel: "", //label to go underneath curve left aligned with axis
 			topLabelItalics: true //controls whether the taxon name  (or other label)  will be printed in italix 
 			valueMatrix: [] // array of {depth, value} pair objects
+			norm: "", //normalization type
 		}
 		*/
 	],
@@ -411,7 +412,7 @@ function loadTaxa(){$.ajax({
 		})
 		//handle clicks on the taxa checkbox grid
 		$(".taxon-input").click(function(){
-					var num = $(this).data('number')
+					var num = $(this).data('number') //add one to correct for the first field being depth
 					var file = $(this).data('file');
 					var name = $(this).data('name');
 					var obj = {"name": name, "fileIndex": num, "file": file, "plotIndex": currentIndex, "valuesMatrix": []};
@@ -557,12 +558,18 @@ function showGraphingOptions(){
 	$("#taxaStylingList").empty();
 	numtaxa = config['taxa'].length
 	//reorder the taxa in the config object so they show up in order
-	if (numtaxa > 1){	for (var i=0; i< numtaxa; i++){
-		var index = config['taxa'][i]['plotIndex'];
-		if (index != i){
-			swap(config['taxa'], index, i);
+	if (numtaxa > 1){	
+		for (var i=0; i< numtaxa; i++){
+			var index = config['taxa'][i]['plotIndex'];
+			if (index != i){
+				swap(config['taxa'], index, i);
 		}
 	}}
+	for (var i=0; i<numtaxa; i++){
+		if (config['taxa'][i] == undefined){
+			config['taxa'].splice(i, 1)
+		}
+	}
 	console.log(config['taxa']);
 	console.log("Working to loop");
 	for (var i=0; i < numtaxa; i++){
@@ -579,33 +586,33 @@ function showGraphingOptions(){
 		tString += "<li class='list-group-item taxa-options'>Fill Color  <input id='fill" + i + "' type='color'/></li>"
 		tString += "<li class='list-group-item taxa-options'>Outline Color <input id='outline" + i + "' type='color'/></li>"
 		tString += "<li class='list-group-item taxa-options'>Normalization Type <select id='normType" + i + "'>"
-		tString += "<option val='none'>--None--</option>"
+		tString += "<option value='none' >--None--</option>"
 		if (config['normalization']['dataSum']['doDataSum'] == true){
-			tString += "<option val='sumField'>Percentage of Sum Field</option>"
+			tString += "<option value='sumField'>Percentage of Sum Field</option>"
 		}
 		if (config['normalization']['subtotals']['numSubtotals'] > 0){
 			for (var q = 0; q< config['normalization']['subtotals']['numSubtotals']; q++){
-				tString += "<option val='sub'" + q + "'>Percentage of Subtotal #" + (q+1) + "</option>"
+				tString += "<option value='sub'" + q + "'>Percentage of Subtotal #" + (q+1) + "</option>"
 			}
 		}
 		if (config['normalization']['apfac']['doVolumeApfac']== true){
-			tString += "<option val='volumeApfac'>As grains per unit volume </option>"
+			tString += "<option value='volumeApfac'>As grains per unit volume </option>"
 		}
 		if (config['normalization']['apfac']['doMassApfac'] == true){
-			tString += "<option val='massApfac'>As accumulation rate</option>"
+			tString += "<option value='massApfac'>As accumulation rate</option>"
 		}
 		tString += "</select></li>"
 		tString += "<li class='list-group-item taxa-options'>500% Curve <input id='exagCurve" + i + "' type='checkbox'></li>"
 		tString += "<li class='list-group-item taxa-options'>Plot Type <select id='plotType" + i + "'>"
-		tString += "<option val='bar'>Bar graph</option>"
-		tString += "<option val='curve'>Curve</option></select></li>"
+		tString += "<option value='bar'>Bar graph</option>"
+		tString += "<option value='curve'>Curve</option></select></li>"
 		tString += "<li class='list-group-item taxa-options'>Group<select id='grouping" + i + "'>"
-		tString += "<option val='none'>--None--</option>"
-		tString += "<option val='herbs'>Herbs</option>"
-		tString += "<option val='shrubs'>Shrubs</option>"
-		tString += "<option val='trees'>Trees</option>"
-		tString += "<option val='aquatics'>Aquatics</option>"
-		tString += "<option val='other'>Other</option></select></li>"
+		tString += "<option value='none'>--None--</option>"
+		tString += "<option value='herbs'>Herbs</option>"
+		tString += "<option value='shrubs'>Shrubs</option>"
+		tString += "<option value='trees'>Trees</option>"
+		tString += "<option value='aquatics'>Aquatics</option>"
+		tString += "<option value='other'>Other</option></select></li>"
 		tString += "<li class='list-group-item taxa-options'>  Bottom Label  <input  id='bottom" + i + "' type='text'/></li>"
 		tString += "<li class='list-group-item taxa-options'> Plot Index (Zero-based from left): <input type='number' id ='plotIndex" + i + "' value='" + tPlotIndex + "'/></li>"
 		tString += "</ul></li>"
@@ -630,12 +637,13 @@ function showGraphingOptions(){
 					bottomLabel = $("#bottom" + i).val();
 					italics = $("#italics" + i).prop('checked');
 					plotIndex = $("#plotIndex" + i).val();
-					console.log(plotIndex);
-					console.log(fill);
+					console.log("Fill Color: "+ fill);
+					alert("Fill Color: " + fill)
+					alert("Outline Color: " + outline)
 					for (var q=0; q< config['taxa'].length; q++){
 						//iterate through the config file to find the right place to dump the properties
 						var taxon = config['taxa'][q]
-						console.log(taxon);
+						//figure out norm type
 						if (taxon.plotIndex == plotIndex){//each taxon has a unique plot index so this should be an okay way to id the properties
 							//update properties in the config
 							config['taxa'][q]['fill'] = fill;
@@ -645,6 +653,7 @@ function showGraphingOptions(){
 							config['taxa'][q]['topLabel'] = curveLabel;
 							config['taxa'][q]['show5xCurve'] = exagCurve;
 							config['taxa'][q]['grouping'] = grouping;
+							config['taxa'][q]['norm'] = normType;
 						}
 					}
 				}
@@ -858,6 +867,7 @@ $(".btn").click(function(){
 			//in addition to the file, we want to know what index to lookup from, so we store an array of file
 			fileLookup = {}; //object of arrays
 			//first go through the taxa to be graphed
+			//these reference the correct index 3/30/2015
 			for (var i=0; i< numTaxa; i++){
 				//first iterate and find the files we need
 				var taxon = config['taxa'][i]
@@ -865,13 +875,14 @@ $(".btn").click(function(){
 				if (fileLookup[configFile] === undefined || fileLookup[configFile].length == 0){
 					fileLookup[configFile] = [];
 				}
-				var index = taxon['fileIndex'];
+				var index = +taxon['fileIndex'];
 				if (fileLookup[configFile].indexOf(index) == -1){
 					fileLookup[configFile].push(index);
 				}
 			}
 			//now go through the normalizations
 			//first subtotals
+			//TODO:  Check to make sure that these are the right fields
 			var subtotals = config['normalization']['subtotals']['subtotals'];
 			for (var i=0; i<config['normalization']['subtotals']['numSubtotals']; i++){
 				console.log(i);
@@ -887,7 +898,7 @@ $(".btn").click(function(){
 					if (fileLookup[file] === undefined || fileLookup[file].length == 0){
 						fileLookup[file] = [];
 					}
-					var index = item['fileIndex'];
+					var index = +item['fileIndex'] + 1;
 					if (fileLookup[file].indexOf(index) == -1){
 						fileLookup[file].push(index);
 					}
@@ -900,7 +911,7 @@ $(".btn").click(function(){
 				if (fileLookup[file1] === undefined || fileLookup[file1].length == 0){
 					fileLookup[file1] = [];
 				}
-				var index = config['normalization']['apfac']['massMassField']['fileIndex'];
+				var index = +config['normalization']['apfac']['massMassField']['fileIndex'] + 1;
 				if (fileLookup[file2].indexOf(index) == -1){
 					fileLookup[file1].push(index);
 				}
@@ -908,7 +919,7 @@ $(".btn").click(function(){
 				if (fileLookup[file2] === undefined || fileLookup[file2].length == 0){
 					fileLookup[file2] = [];
 				}
-				var index = config['normalization']['apfac']['massControlField']['fileIndex'];
+				var index = +config['normalization']['apfac']['massControlField']['fileIndex'] + 1;
 				if (fileLookup[file2].indexOf(index) == -1){
 					fileLookup[file2].push(index);
 				}
@@ -918,7 +929,7 @@ $(".btn").click(function(){
 				if (fileLookup[file1] === undefined || fileLookup[file1].length == 0){
 					fileLookup[file1] = [];
 				}
-				var index = config['normalization']['apfac']['volumeVolumeField']['fileIndex'];
+				var index = +config['normalization']['apfac']['volumeVolumeField']['fileIndex'] + 1;
 				if (fileLookup[file1].indexOf(index) == -1){
 					fileLookup[file1].push(index);
 				}
@@ -926,7 +937,7 @@ $(".btn").click(function(){
 				if (fileLookup[file2] === undefined || fileLookup[file2].length == 0){
 					fileLookup[file2] = [];
 				}
-				var index = config['normalization']['apfac']['volumeControlField']['fileIndex'];
+				var index = +config['normalization']['apfac']['volumeControlField']['fileIndex'] + 1;
 				if (fileLookup[file2].indexOf(index) == -1){
 					fileLookup[file2].push(index);
 				}
@@ -937,7 +948,8 @@ $(".btn").click(function(){
 				if (fileLookup[file] === undefined || fileLookup[file].length == 0){
 					fileLookup[file] = [];
 				}
-				var index = config['normalization']['dataSum']['sumField']['fileIndex'];
+				var index = +config['normalization']['dataSum']['sumField']['fileIndex'] + 1;
+				console.log(index);
 				if (fileLookup[file].indexOf(index) == -1){
 					fileLookup[file].push(index);
 				}
@@ -993,8 +1005,10 @@ $(".btn").click(function(){
 							var data = parsedFile['data'];
 							var numLevels = data.length; 
 							for (var x=0; x< indeces.length; x++){
+								
 								//iterate through the taxa in this file
 								index = indeces[x];
+								alert(data[0][index])
 								//check depth column and get index
 								var depthIndex;
 								var header = data[0];
@@ -1013,7 +1027,7 @@ $(".btn").click(function(){
 									configTaxon = config['taxa'][q];
 									if ((configTaxon['file'] == fName) && (configTaxon['fileIndex'] == index)){
 										values = [];
-										for (var w=0; w<numLevels; w++){
+										for (var w=1; w<numLevels; w++){ //start at 1 because the first row is header
 											//iterate through the levels and collect the values
 											var level = data[w]; 
 											var val = level[index]; 
@@ -1025,16 +1039,23 @@ $(".btn").click(function(){
 									}
 								}
 								//now place the normalizations
+								//these reference the correct index 3/30/2015
 								if (config['normalization']['dataSum']['doDataSum']){
 									var file = config['normalization']['dataSum']['sumField']['file'];
-									var fileIndex = config['normalization']['dataSum']['sumField']['fileIndex'];
+									var fileIndex = +config['normalization']['dataSum']['sumField']['fileIndex'] + 1;
 									if ((file == fName) && (fileIndex == index)){
 										values = [];
-										for (var w = 0; w< numLevels; w++){
+										for (var w = 0; w< numLevels ; w++){
 											var level = data[w];
-											var val = level[index];
+											var val = level[fileIndex];
 											var depth = level[depthIndex];
-											values.push({depth:depth, value: val})
+											if ($.isNumeric(val)){
+												values.push({depth:depth, value: val})
+											}else{
+												console.log("Skipping depth: " + depth + " due to NaN value.")
+												values.push({depth:depth, value: 0})
+											}
+											
 										}
 										config['normalization']['dataSum']['sumMatrix'] = values;
 										console.log("Updated values for: data sum normalization");
@@ -1151,8 +1172,13 @@ $(".btn").click(function(){
 			var height = $("input[name=page-size]:checked").attr('height')
 			var width = $("input[name=page-size]:checked").attr('width')
 			var units = $("input[name=page-size]:checked").attr('units')
+			console.log(height)
 			//convert to px using 72 px per inch and 28 px per cm
-			if (units == 'cm'){
+			if (width == 'page' || height == 'page'){
+				console.log("Fitting to page")
+				heightPX = $(document).height()
+				widthPX = $(document).width()
+			}else if (units == 'cm'){
 				heightPX = height * 28;
 				widthPX = width * 28;
 			}else if (units == 'in'){
@@ -1164,9 +1190,48 @@ $(".btn").click(function(){
 			}
 			config['plotWidth'] = widthPX;
 			config['plotHeight'] = heightPX;
+			//get chronology if applicable
+			if (config['hasChronologyFile']){
+				var user = "<?php Print($_SESSION['user']) ?>"
+				console.log(user);
+				var core = config['core'];
+				//chronology naming convention is /[user]_[core]_chronology.csv
+				var f = "../datafiles/" + user + "_" + core + "_chronology.csv";
+				var r = Papa.parse(f, {
+					download: true,
+					worker: true,
+					header: false,
+					error: function(){
+						console.log("Error in collecting chronology data.  Proceeding anyways...");
+					},
+					success: function(parsedFile){
+						var minAge = Infinity;
+						var maxAge = Infinity;
+						var data = parsedFile['data'];
+						var numLevels = data.length;
+						var values = [];
+						for (var w=0; w< numLevels; w++){
+							var level = data[w];
+							var depth = level[0];
+							var age = level[1];
+							var val = {depth:depth, age: age}
+							values.push(val);
+							if (age > maxAge){
+								maxAge = age;
+							}
+							if (age < minAge){
+								minAge = age;
+							}
+						}
+						config['chronology'] = values
+						config['axes']['minAge'] = minAge;
+						config['axes']['maxAge'] = maxAge;
+					}
+				})
+			}
 			break
 		case 7:
-		//extra features to be implemented as time allows
+		//stratigraphy and zonation
 			$("#plotTitleDiv").hide()
 			$("#selectCoreDiv").hide()
 			$("#selectTaxaDiv").hide()
@@ -1226,23 +1291,17 @@ $(".btn").click(function(){
 					var nowString = now.getFullYear() + "-" + now.getMonth() + "-" + now.getDay() + ' ' + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
 					config.createdAt = nowString;
 					config.lastDrawn = nowString;
-					var c = JSON.stringify(config)
-
+					c = JSON.stringify(config);
 					$.ajax({
 						url:"scripts/saveDiagramConfig.php",
-						type:"GET",
-						contentType: "json",
+						type:"POST",
 						error:function(error){
 							alert("Error gathering data from the server.  Please try again later.");
-							console.log("TAXA AJAX ERROR: " + error);
-						},
-						data:{
-							config: c,
-							core: config['core']
+							console.log("TAXA AJAX ERROR:");
+							console.log(error)
 						},
 						success: function(r){
 							console.log(r)
-							r = JSON.parse(r);
 							if (r['success'] == 'true'){
 								console.log(r);
 								user = r['user'];
@@ -1260,14 +1319,19 @@ $(".btn").click(function(){
 							console.log("Sending diagram config.");
 							console.log(config);
 						},
-						cache: false
+						data:{
+							config: c,
+							core: config['core']
+						},
+						cache: false,
 					})
 				}else{
 					console.log("Waiting...");
-					setTimeout(submit, 500);
+					setTimeout(submit, 50);
 				}
 			}
 			submit();
 
 	}
 })
+

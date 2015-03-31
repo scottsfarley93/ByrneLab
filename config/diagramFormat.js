@@ -3,7 +3,7 @@
 		"top": 0.01,
 		"left": 0.01,
 		"right": 0.01,
-		"bottom": 0.1
+		"bottom": 0.01
 	},
 	"axisPadding": 0.01, 
 	"canvasPadding": 0.01, 
