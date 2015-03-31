@@ -75,6 +75,7 @@ config = {
 			topLabelItalics: true //controls whether the taxon name  (or other label)  will be printed in italix 
 			valueMatrix: [] // array of {depth, value} pair objects
 			norm: "", //normalization type
+			smoothing: ""//smoothing function --> right now none or 3-point running average
 		}
 		*/
 	],
@@ -604,8 +605,8 @@ function showGraphingOptions(){
 		tString += "</select></li>"
 		tString += "<li class='list-group-item taxa-options'>500% Curve <input id='exagCurve" + i + "' type='checkbox'></li>"
 		tString += "<li class='list-group-item taxa-options'>Plot Type <select id='plotType" + i + "'>"
-		tString += "<option value='bar'>Bar graph</option>"
-		tString += "<option value='curve'>Curve</option></select></li>"
+		tString += "<option value='curve'>Curve</option>"
+		tString += "<option value='bar'>Bar Chart</option></select></li>"
 		tString += "<li class='list-group-item taxa-options'>Group<select id='grouping" + i + "'>"
 		tString += "<option value='none'>--None--</option>"
 		tString += "<option value='herbs'>Herbs</option>"
@@ -614,6 +615,9 @@ function showGraphingOptions(){
 		tString += "<option value='aquatics'>Aquatics</option>"
 		tString += "<option value='other'>Other</option></select></li>"
 		tString += "<li class='list-group-item taxa-options'>  Bottom Label  <input  id='bottom" + i + "' type='text'/></li>"
+		tString += "<li class='list-group-item taxa-options'>Curve Smoothing <select id='smoothingSelect" + i + "'>"
+		tString += "<option val='none'>None</option>"
+		tString += "<option val='3'>Three Period Smoothing</option></select>"
 		tString += "<li class='list-group-item taxa-options'> Plot Index (Zero-based from left): <input type='number' id ='plotIndex" + i + "' value='" + tPlotIndex + "'/></li>"
 		tString += "</ul></li>"
 		tString += "</ul>"
@@ -637,7 +641,7 @@ function showGraphingOptions(){
 					bottomLabel = $("#bottom" + i).val();
 					italics = $("#italics" + i).prop('checked');
 					plotIndex = $("#plotIndex" + i).val();
-					console.log("Fill Color: "+ fill);
+					smoothing = $("#smoothingSelect" + i).val()				
 					for (var q=0; q< config['taxa'].length; q++){
 						//iterate through the config file to find the right place to dump the properties
 						var taxon = config['taxa'][q]
@@ -652,6 +656,8 @@ function showGraphingOptions(){
 							config['taxa'][q]['show5xCurve'] = exagCurve;
 							config['taxa'][q]['grouping'] = grouping;
 							config['taxa'][q]['norm'] = normType;
+							config['taxa'][q]['plotType'] = plotType;
+							config['taxa'][q]['smoothing'] = smoothing;
 						}
 					}
 				}

@@ -14,7 +14,11 @@
 	"primaryAxis": 0.1, 
 	"secondaryAxis": 0.1, 
 	"stratigraphyCol": 0.1, 
-	"defaultPadding": 0.005, 
+	"defaultPadding": 0.005,
+	"titleLeft": 0.05,
+	"titleTop" : 0.025,
+	"namePadding": 0.01,
+	"fontSize" : 0.025,
 	"dataDescriptions": {
 			"axisPadding": "percentage of diagram space between the primary and secondary and primary and stratigraphy axes",
 			"canvasPadding": "percentage of space between the stratigraphy column or primary axis and the first curve axis",
@@ -25,6 +29,10 @@
 			"primaryAxis": "percentage of diagram space allotted to the primary axis area",
 			"secondaryAxis": "percentage of diagram space allotted to the secondary axis area, if it exists",
 			"stratigraphyCol": "percentage of diagram space to be allotted to the stratigraphy column, if it exists",
-			"defaultPadding": "percentage of diagram space allotted to spacing between names"
+			"defaultPadding": "percentage of diagram space allotted to spacing between names",
+			"titleTop": "percentage of diagram space between the top of the plot and the top of the plot title",
+			"titleLeft" : "percentage of diagram between the left of the plot and the start of the plot title",
+			"namePadding" : "percentage of diagram space between the top of diagram and the start of the name in the Y direction",
+			"fontSize" : "experimental font sizing technique"
 	}
 }

@@ -1,7 +1,8 @@
 ///THIS IS drawDiagram.js 
 //This file handles all GRAPHING.  All properties for graphing and displaying data must be previously set by the user createPlotClient.js
 //global object so that we can keep track of mins/maxes, file names, etc
-console.log("Creating Pollen Diagram using Calpalyn II drawDiagram.js v1.2.0");
+//jsPDF does not recognize .style attributes, so use .attr for all styling
+console.log("Creating Pollen Diagram using Calpalyn II drawDiagram.js v2.0.0");
 var startTime = new Date();
 console.log("Drawing started at: " + startTime.toLocaleString())
 var config; //loaded diagram configuration file
@@ -166,6 +167,13 @@ function drawDiagram(config){
 		}else{
 			throw "Unexpected normalization type.  Aborting."
 		}
+		if (config['taxa'][i]['show5xCurve']){
+			for (var w=0; w<config['taxa'][i]['valuesMatrix'].length; w++){
+				val = config['taxa'][i]['valuesMatrix'][w]['norm']
+				val5 = val * 5
+				config['taxa'][i]['valuesMatrix'][w]['norm'] = val5
+			}
+		}
 		for (var p=0; p<numLevels; p++){
 			var normval = config['taxa'][i]['valuesMatrix'][p]['norm'];
 			console.log("P: " + p + " value: " + normval)
@@ -237,6 +245,17 @@ function drawDiagram(config){
 	}else{
 		console.log("No secondary axis requested");
 	}
+	//write the plot title
+	var theTitle = config['title']
+	titleTop = +rules['titleTop'] * diagramHeight
+	titleLeft= + rules['titleLeft'] * diagramWidth;
+	console.log("Title Left: " + titleLeft)
+	console.log("Title Top: " + titleTop)
+	plotElements['svg'].append('text')
+		.attr('x', (+rules['titleLeft'] * diagramWidth))
+		.attr('y', (+rules['titleTop'] * diagramHeight))
+		.text(theTitle)
+	
 	//figure out where the first curve starts
 	var xstart = (diagramWidth * +rules['margins']['left']) 
 	if (config['axes']['showSecondaryAxis'] == "true" || config['axes']['showSecondaryAxis'] == true){
@@ -254,13 +273,16 @@ function drawDiagram(config){
 	var xScaleMain = d3.scale.linear()
 		.domain([0, xmax])
 		.range([xstart, endOfCanvas])
+
 	cursor = 0;
 	//////central taxon graphing loop/////////
 	for (var i=0; i< config['taxa'].length; i++){
+		//set up
 		console.log("-------Now plotting Taxa: " + taxName);
 		var taxon = config['taxa'][i];
 		var taxName = taxon['name'];
 		var taxValues = taxon['valuesMatrix'];
+		var numLevels = taxValues.length;
 		var taxmax = -Infinity;
 		for (var q=0; q<taxValues.length; q++){
 			var val = taxValues[q]['norm']
@@ -270,6 +292,7 @@ function drawDiagram(config){
 				}
 			}
 		}
+		//scaling
 		console.log("Taxamax: " + taxmax)
 		axisStart = xScaleMain(cursor)
 		axisEnd = xScaleMain(cursor + taxmax)
@@ -285,41 +308,92 @@ function drawDiagram(config){
 		taxAxis = d3.svg.axis()
 			.scale(taxScale)
 			.orient("bottom")
-		var curveStart = {depth: +config['axes']['minDepth'], norm: 0}
-		var curveEnd = {depth: (+config['axes']['maxDepth']), norm: 0}
-		taxValues.unshift(curveStart)
-		taxValues.push(curveEnd)
-		var yscale = plotElements['yScale']
-		var pathFunction = d3.svg.line()
-			.x(function(d){return taxScale(d.norm)})
-			.y(function(d){return yscale(d.depth)})
-		var pathvals = pathFunction(taxValues);
+		plotType = config['taxa'][i]['plotType'];
 		var strokeColor = taxon['outline'];
 		console.log("Drawing outline in color: " + strokeColor)
 		var fillColor = taxon['fill'];
 		console.log("Drawing fill in color: " + fillColor)
-		var curve = plotElements['svg'].append('path')
-			.attr('d', pathvals)
-			.attr('stroke', strokeColor)
-			.attr('fill', fillColor)
-		if (taxon['show5xCurve'] == 'true' || taxon['show5xCurve'] == true){
-			//add the exag curve
-			console.log("Adding 5x curve.")
-			var exagFunction = d3.svg.line()
-					.x(function(d){return d.norm * 5})
-					.y(function(d){return d.depth})
-			var pathvals = exagFunction(taxValues);
-			var strokeColor = '#ffffff';
-			var fillColor = '#ffffff';
+		if (plotType == 'curve'){
+			//draw a curve
+			var curveStart = {depth: +config['axes']['minDepth'], norm: 0}
+			var curveEnd = {depth: (+config['axes']['maxDepth']), norm: 0}
+			taxValues.unshift(curveStart)
+			taxValues.push(curveEnd)
+			var yscale = plotElements['yScale']
+			var pathFunction = d3.svg.line()
+				.x(function(d){return taxScale(d.norm)})
+				.y(function(d){return yscale(d.depth)})
+			var pathvals = pathFunction(taxValues);
 			var curve = plotElements['svg'].append('path')
 				.attr('d', pathvals)
 				.attr('stroke', strokeColor)
 				.attr('fill', fillColor)
+			if (taxon['show5xCurve'] == 'true' || taxon['show5xCurve'] == true){
+				//add the exag curve
+				console.log("Adding 5x curve.")
+				var exagFunction = d3.svg.line()
+						.x(function(d){return taxScale(d.norm * 5)})
+						.y(function(d){return yScale(d.depth)})
+				var pathvals = exagFunction(taxValues);
+				var strokeColor = '#ffffff';
+				var fillColor = '#ffffff';
+				var exCurve = plotElements['svg'].append('path')
+					.attr('d', pathvals)
+					.attr('stroke', strokeColor)
+					.attr('fill', fillColor)
+			}
+		}else if (plotType =='bar'){
+			///draw a barchart
+			var barHeight = (axisBottom - axisTop - 0.5*diagramHeight) / numLevels; //bars are horizontal so height is thickness of bar
+			var halfBar = barHeight / 2
+			var barchart = plotElements['svg'].append('g')
+				.attr('class', 'bar')
+			for (var x =0; x<numLevels; x++){
+				var val = taxValues[x]['norm']
+				var scaledVal = taxScale(val)
+				console.log("Bar extends from: " + taxScale(0) + " to " + scaledVal);
+				var depth = taxValues[x]['depth']
+				var scaledDepth = yScale(depth);
+				console.log("Actual Depth: " + depth + " scaled to: " + scaledDepth)
+				barchart.append('rect')
+					.attr('x', taxScale(0))
+					.attr('width', taxScale(val))
+					.attr('y', yScale(depth)-barHeight)
+					.attr('height', barHeight)
+					.attr('fill', fillColor)
+					.attr('stroke', strokeColor)
+			}
+		}else{
+			throw "Unexpected plot type.  Aborting..."
 		}
+		//curve smoothing
+		var smoothing = config['taxa'][i]['smoothing']
+		if (smoothing == 'none'){
+			console.log("No smoothing requested.")
+		}else if (smoothing == 3 || smoothing == '3'){
+			for (var x=1; x<(numLevels - 1); x++){
+				var previousValue = +taxValues[x-1]['norm']
+				var thisValue = +taxValues[x]['norm']
+				var nextValue = +taxValues[x+1]['norm']
+				var smoothValue = (previousValue + (2*thisValue) + nextValue) / 4
+				config['taxa'][i]['valuesMatrix'][x]['smooth'] = smoothValue;
+				var pathFunction = d3.svg.line()
+					.x(function(d){return taxScale(d.smooth)})
+					.y(function(d){return yscale(d.depth)})
+				var pathvals = pathFunction(taxValues);
+				var smooth = plotElements['svg'].append('path')
+					.attr('d', pathvals)
+					.attr('stroke', strokeColor)
+					.attr('strokeWidth', 2)//make this a thicker line
+				curve.attr('stroke-width', 0.5) //make the original curve less thick
+			}
+		}
+		///draw the bottom axis
 		var taxAxisElement = plotElements['svg'].append('g')
 			.attr('class', 'x axis')
 			.call(taxAxis)
 			.attr('transform', 'translate(0,' + axisBottom + ')')
+			
 		if (taxmax < 5){
 			taxAxisElement.selectAll('text')
 			.style('text-anchor', 'end')
@@ -327,9 +401,22 @@ function drawDiagram(config){
 			.attr('dy', '.15em')
 			.attr('transform', function(d){
 				return 'rotate(-45)'})	
-		}	
+		}
+		var topLabel = taxon['topLabel'];
+		plotElements['svg'].append('text')
+			.attr('class', 'top label')
+			.attr('x', axisStart)
+			.attr('y', axisTop - (diagramHeight * +rules['namePadding']))
+			.text(topLabel)	
+		var bottomLabel = taxon['bottomLabel'];
+		plotElements['svg'].append('text')
+			.attr('class', 'top label')
+			.attr('x', axisStart)
+			.attr('y', axisBottom + 5)
+			.text(bottomLabel);	
 		cursor += taxmax + 1.5
 	}
+	setPropertiesExplicity();
 }
 		
 	
@@ -354,6 +441,7 @@ function drawPrimaryAxis(tickInt){
 		.attr('class', 'y axis')
 		.call(primaryAxis)
 		.attr('transform', 'translate(' + xEnd + ") ")
+		.attr('shape-rendering', 'crispEdges')
 }	
 
 function drawSecondaryAxis(tickInt){
@@ -391,6 +479,26 @@ function drawSecondaryAxis(tickInt){
 	plotElements['secondaryAxis'] = axis
 	
 }
+function setPropertiesExplicity(){
+	//css properties must be set explicity, rather than from css rules
+	console.log("Possible font size: " + (diagramWidth * +rules['fontSize']));
+	d3.selectAll('.axis').selectAll('text').attr('font-family', 'times').style('font-size', +(diagramWidth * +rules['fontSize'])).style('font-weight', 'normal')
+	d3.selectAll('.label').selectAll('text').attr('font-family', 'times').style('font-size', +(diagramWidth * +rules['fontSize'])).style('font-weight', 'normal')
+	d3.selectAll(".axis").selectAll('path').attr('shape-rendering', 'crispEdges').attr('fill', 'none').attr('stroke', '#000')
+	d3.selectAll(".axis").selectAll('line').attr('shape-rendering', 'crispEdges').attr('fill', 'none').attr('stroke', '#000')
+}
+//////save to pdf
+$("#download").click(function(){
+	//apply styling that is usually contained within the css rules
+
+	// Get the d3js SVG element
+	var svg = $("#plot > svg")[0];
+	// Extract the data as SVG text string
+	var svg_xml = (new XMLSerializer).serializeToString(svg);
+	// Submit the <FORM> to the server.
+	open("data:image/svg+xml," + encodeURIComponent(svg_xml));
+})
+
 
 	
 	

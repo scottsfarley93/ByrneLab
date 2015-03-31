@@ -1,0 +1,13 @@
+Roadmap of things to do on the Byrne Lab Project:
+
+Create Diagram
+1.  Check subtotal fields for index correctness
+2.  Enable custom size fields
+3.  Subtotal Coloring
+
+
+Draw Diagram
+1.  Bar charts
+2.  Smoothing
+3.  Grouping
+4.  Text scaling

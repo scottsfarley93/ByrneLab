@@ -99,6 +99,13 @@ if (isset($GET['core'])){
             </li>
             <li><a href="createPlot.php">Create Plot</a></li>
             <li><a href="savedProjects.html">Saved Projects</a></li>
+         	          <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Diagram Options <span class="caret"></span></a>
+              <ul class="dropdown-menu" role="menu">
+                <li id='download'><a href="#">Download as SVG</a></li>
+                <li id='store'><a href="#">Store on Calpalyn</a></li>
+              </ul>
+            </li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
             <li><a href="cgi-bin/logout.php">Logout</a></li>
@@ -147,6 +154,7 @@ if (isset($GET['core'])){
     <script src="js/bootstrap.min.js"></script>
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script src="js/drawDiagram.js"></script>
+    <script src='js/fileSaver.js'></script>
     
   </body>
 </html>
