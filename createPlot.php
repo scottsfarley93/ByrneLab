@@ -49,6 +49,10 @@ if ($_SESSION['loggedIn'] == "TRUE"){
 	table{
 		border:#ffffff;
 	}
+	#stratigraphy-modal{
+		width: 100% !important;
+	}
+	
 
   	</style>
     <meta charset="utf-8">
@@ -243,8 +247,8 @@ if ($_SESSION['loggedIn'] == "TRUE"){
         	<div class='row' id='extraFeaturesDiv'>
         		<ul class="list-group ">
         			<strong>Stratigraphy Column</strong>
-        			<li class='list-group-item'><input type='radio' value= '1' name='showStratigraphy' id='showStratigraphyInput'/>  Show stratigraphy column </li>
-        			<li class='list-group-item'><input type='radio' value= '0' name='showStratigraphy' id='hideStratigraphyInput' checked/>  Do not show stratigraphy column </li>
+        			<li class='list-group-item'><input type='radio' value= 'true' name='showStratigraphy' id='showStratigraphyInput'/>  Show stratigraphy column </li>
+        			<li class='list-group-item'><input type='radio' value= 'false' name='showStratigraphy' id='hideStratigraphyInput' checked/>  Do not show stratigraphy column </li>
         			<li class='list-group-item'><button id='createStratDiagramButton' class='btn btn-primary' data-toggle='modal' data-target='#stratigraphy-modal'>Build Stratigraphy Diagram</button></li>
         			<div class='modal fade' id='stratigraphy-modal' tabindex="-1" role='dialog' aria-hide='true'>
         				<div class='modal-dialog'>
@@ -273,8 +277,8 @@ if ($_SESSION['loggedIn'] == "TRUE"){
         		<br />
         		<ul class="list-group ">
         			<strong>Diagram Zonation</strong>
-        			<li class='list-group-item'><input type='radio' value= '1' name='showZonation' id='showZonationInput'/>  Enable Zonation </li>
-        			<li class='list-group-item'><input type='radio' value= '0' name='showZonation' id='hideZonationInput' checked/>  Do Not Enable Zonation</li>
+        			<li class='list-group-item'><input type='radio' value= 'true' name='showZonation' id='showZonationInput'/>  Enable Zonation </li>
+        			<li class='list-group-item'><input type='radio' value= 'false' name='showZonation' id='hideZonationInput' checked/>  Do Not Enable Zonation</li>
         			<li class='list-group-item'><button id='createZonationButton' class='btn btn-primary' data-toggle='modal' data-target='#zonation-modal'>Open Zonation Editor</button></li>
         			<div class='modal fade' id='zonation-modal' tabindex="-1" role='dialog' aria-hide='true'>
         				<div class='modal-dialog'>

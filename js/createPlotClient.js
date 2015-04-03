@@ -583,7 +583,7 @@ function showGraphingOptions(){
 		tString = "<li class='list-group-item'>" 
 		tString += "<h4>" + tName + "</h4><strong class='text-muted'>" + tFile + "</strong>"
 		tString += "<li class='list-group-item'><ul class='list-group taxa-options-holder' data-name='" + tName + "' data-index='" + tPlotIndex + "'>"
-		tString += "<li class='list-group-item taxa-options '>  Curve Label <input type='text' id='tNameField" + i + "'/> <span class='alignRight' id='italics" +i+ "'><input type='checkbox'>Show label in italics</span></li>"
+		tString += "<li class='list-group-item taxa-options '>  Curve Label <input type='text' id='tNameField" + i + "'/> <span class='alignRight'><input id='italics" +i+ "' type='checkbox' checked='true'>Show label in italics</span></li>"
 		tString += "<li class='list-group-item taxa-options'>Fill Color  <input id='fill" + i + "' type='color'/></li>"
 		tString += "<li class='list-group-item taxa-options'>Outline Color <input id='outline" + i + "' type='color'/></li>"
 		tString += "<li class='list-group-item taxa-options'>Normalization Type <select id='normType" + i + "'>"
@@ -674,9 +674,9 @@ $("#removeZoneButton").hide();
 $("#addStratLayerButton").click(function(){
 	$("#removeStratLayerButton").show();
 	currentStratLayer = config['stratigraphy']['numLayers'];
-	s = "<tr id='stratRow" + currentStratLayer + "'><td><input type='text'/></td><td><input type='number'/></td><td><input type='number'/></td>"
-	s += "<td><select><option val='0'>--None--</option</select></td>";
-	s += "<td><select><option val='0'>--None--</option></select></td></tr>";
+	s = "<tr id='stratRow" + currentStratLayer + "'><td><input type='text' class='stratLabel'/></td><td><input type='number' class='stratTop'/></td><td><input type='number' class='stratBottom'/></td>"
+	s += "<td><select class='stratFill'><option value='0'>--None--</option>" 
+	s += "<td><select class='stratBoundary'><option value='0'>--None--</option></select></td></tr>";
 	$("#stratTable").append(s);
 	config['stratigraphy']['numLayers'] +=1
 });
@@ -692,21 +692,20 @@ $("#removeStratLayerButton").click(function(){
 
 //update the stratigraphy config object when the save changes button is clicked
 $("#saveStratigraphy").click(function(){
-	//iterate through the children of the table and then the children of the rows to get the values
 	console.log("Saving stratigraphy to configuration.")
-	var list = $("#stratigraphyTable");
-	var rows = list.children();
-	var numRows = rows.length;
-	for (var i=0; i<numRows; i++ ){
-		var row = rows[i];
-		var rowData = $(row).children();
-		var layerLabel = $(rowData[0]).val();
-		var layerTop = $(rowData[1]).val();
-		var layerBottom = $(rowData[2]).val();
-		var layerFill = $(rowData[3]).val();
-		var boundaryType = $(rowData[4]).val();
-		var layer = {label: layerLabel, top:layerTop, bottom:layerBottom, fill:layerFill, boundary: boundaryType}
-		config['stratigraphy']['stratColumn'].push(layer);
+	var labels = $(".stratLabel")
+	var stratTops = $(".stratTop")
+	var stratBottoms  =$(".stratBottom")
+	var fills = $(".stratFill")
+	var boundaries = $(".stratBoundary")
+	var numLayers = labels.length
+	for (var i=0; i<numLayers; i++){
+		var label = $(labels[i]).val()
+		var top = $(stratTops[i]).val()
+		var bottom = $(stratBottoms[i]).val()
+		var fill = $(fills[i]).val()
+		var boundary = $(boundaries[i]).val()
+		config['stratigraphy']['stratColumn'].push({label:label, layerTop: top, layerBottom: bottom, layerFill : fill, layerBoundary: boundary})
 	}
 })
 
@@ -714,7 +713,7 @@ $("#saveStratigraphy").click(function(){
 var currentZone = config['zonation']['numZones'];
 $("#addZoneButton").click(function(){
 	$("#removeZoneButton").show();
-	s = "<tr id='zoneRow" + currentZone + "'><td><input type='text'/></td><td><input type='number'/></td><td><input type='number'/></td><td><input type='checkbox'/></td></tr>";
+	s = "<tr id='zoneRow" + currentZone + "'><td><input type='text' class='zoneLabel'/></td><td><input type='number' class='zoneTop'/></td><td><input type='number' class='zoneBottom'/></td><td><input type='checkbox' class='subzone'/></td></tr>";
 	$("#zoneTable").append(s);
 })
 
@@ -729,24 +728,21 @@ $("#removeZoneButton").click(function(){
 //update the zonation config object when the save changes button is clicked
 $("#saveZonation").click(function(){
 	console.log('Saving zonation to configuration');
-	var list = $("#zoneTable");
-	var rows = list.children();
-	var numRows= rows.length;
-	for(var i=0; i< numRows; i++){
-		var row = rows[i];
-		var rowData = $(row).children();
-		var label = $(rowData[0]).val();
-		var layerTop = $(rowData[1]).val()
-		var layerBottom = $(rowData[2]).val();
-		var layerIsSubzone = $(rowData[3]).prop('checked');
-		if (layerIsSubzone){
-			zoneType = 1; //subzone
-		}else{
-			zoneType =0 ; //primary zone
-		}
-		var zone = {label: label, topDepth: layerTop, bottomDepth: layerBottom, zoneType:zoneType}
-		config['zonation']['zonation'].push(zone);
+	var labels = $(".zoneLabel");
+	console.log(labels)
+	var tops = $(".zoneTop")
+	var bottoms = $(".zoneBottom")
+	var subzones = $(".subzone");
+	var numZones = labels.length
+	for (var i=0; i<numZones; i++){
+		var label = $(labels[i]).val();
+		var zoneTop = $(tops[i]).val();
+		var zoneBottom = $(bottoms[i]).val();
+		var subzone = $(subzones[i]).prop('checked')
+		var obj = {label:label, zoneTop:zoneTop, zoneBottom:zoneBottom, subzone: subzone}
+		config['zonation']['zonation'].push(obj)
 	}
+	console.log(config['zonation']['zonation'])
 })
 
 
@@ -1180,8 +1176,8 @@ $(".btn").click(function(){
 			//convert to px using 72 px per inch and 28 px per cm
 			if (width == 'page' || height == 'page'){
 				console.log("Fitting to page")
-				heightPX = $(document).height()
-				widthPX = $(document).width()
+				heightPX = $(document).height() 
+				widthPX = $(document).width() * 0.75
 			}else if (units == 'cm'){
 				heightPX = height * 28;
 				widthPX = width * 28;
@@ -1287,6 +1283,10 @@ $(".btn").click(function(){
 				alert("Taxa contains an undefined element!  Aborting...")
 				throw "Taxa contains undefined element";
 			}
+			var doStratigraphy = $("input[name=showStratigraphy]:checked").val()
+			var doZonation = $("input[name=showZonation]:checked").val()
+			config['stratigraphy']['doStratigraphy'] = doStratigraphy;
+			config['zonation']['doZonation'] = doZonation;
 			break
 		case 9:
 			function submit(){

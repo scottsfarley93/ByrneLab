@@ -10,21 +10,21 @@ if (isset($_SESSION['user'])){
 if (isset($_POST['core'])){
 	$core = $_POST['core'];
 }else{
-	$core = "";
+	die("No core received");
 }
 if(isset($_POST['creationTime'])){
 	$time = $_POST['creationTime'];//should be unix timestamp
 }else{
-	$time = 0;
+	die ("No timestamp  received");
 }
 $fileName = "savedProjects/" .$user."_" . $core ."_".$time . ".cpn";
 require_once("../database_access.php");
 //tables fields are index, username, coreName, creationTimestamp, lastDrawnTimestamp, fileReference
-$sql = "INSERT INTO `SavedProjects`  Values(Default, '$user', '$core', $time, Default, '$fileName')";
+$sql = "INSERT INTO `SavedProjects`  Values (Default, '$user', '$core', $time, Default, '$fileName')";
 $result = mysqli_query($connection, $sql);
 if(!$result){
 	echo mysqli_error($connection);
-	die();
+	die("Error");
 }else{
 	echo "Success";
 }

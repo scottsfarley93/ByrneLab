@@ -69,6 +69,8 @@ function drawDiagram(config){
 	//start with plot dimensions and title
 	diagramWidth = config['plotWidth'];
 	diagramHeight = config['plotHeight'];
+	plotElements['diagramWidth'] = diagramWidth
+	plotElements['diagramHeight'] = diagramHeight;
 	//dimensions default to -1, so if there is no height specified --> error?  
 	if (diagramWidth == -1 ||  diagramHeight == -1){
 		alert("It seems that the diagram configuration file has invalid plot dimensions.  Please return to the diagram configuration page.");
@@ -394,7 +396,7 @@ function drawDiagram(config){
 			.call(taxAxis)
 			.attr('transform', 'translate(0,' + axisBottom + ')')
 			
-		if (taxmax < 5){
+		if (taxmax < 8){
 			taxAxisElement.selectAll('text')
 			.style('text-anchor', 'end')
 			.attr('dx', '-.8em')
@@ -402,19 +404,73 @@ function drawDiagram(config){
 			.attr('transform', function(d){
 				return 'rotate(-45)'})	
 		}
+		//write the top and bottom labels
 		var topLabel = taxon['topLabel'];
-		plotElements['svg'].append('text')
+		newYOrigin = axisTop - (diagramHeight * +rules['namePadding'])
+		if (i == 0){
+			newXOrigin = axisStart + (diagramWidth  * +rules['initialNameOffset'])
+		}else{
+			newXOrigin = axisStart + (diagramWidth  * +rules['otherNameOffset'])
+		}
+		var topLabel = plotElements['svg'].append('text')
 			.attr('class', 'top label')
-			.attr('x', axisStart)
-			.attr('y', axisTop - (diagramHeight * +rules['namePadding']))
-			.text(topLabel)	
+			.attr('x', newXOrigin)
+			.attr('y', newYOrigin)
+			.text(topLabel)
+			.attr('transform', 'rotate(-45 ' + newXOrigin + ',' + newYOrigin + ')')	
+		if (config['taxa'][i]['topLabelItalics'] == true || config['taxa'][i]['topLabelItalics'] == "true"){
+			topLabel.style('font-style', 'italic')
+		}
 		var bottomLabel = taxon['bottomLabel'];
 		plotElements['svg'].append('text')
-			.attr('class', 'top label')
+			.attr('class', 'label')
 			.attr('x', axisStart)
-			.attr('y', axisBottom + 5)
+			.attr('y', axisBottom + (diagramHeight * +rules['defaultPadding']))
 			.text(bottomLabel);	
 		cursor += taxmax + 1.5
+	}
+	//zonation
+	if (config['zonation']['doZonation'] == true || config['zonation']['doZonation'] == "true"){
+		var zonation = config['zonation']['zonation'];
+		var xStart = xScaleMain(0)
+		for (var z =0; z< zonation.length; z++){
+			var zone = zonation[z];
+			var zoneTop = +zone['zoneTop']
+			var scaledTop = plotElements['yScale'](zoneTop);
+			var zoneBottom = +zone['zoneBottom']
+			console.log(zoneTop)
+			var scaledBottom = plotElements['yScale'](zoneBottom);
+			console.log(zoneBottom);
+			var zoneLabel = zone['label']
+			console.log("drawing zone: " + zoneLabel);
+			var subzone = zone['subzone'];
+			var labelPlacementY = plotElements['yScale']((zoneTop + zoneBottom) / 2)
+			var labelPlacementX = endOfCanvas - (diagramWidth * + rules['zoneLabelOffset'])
+			//TODO: check ifthere is another boundary adjacent to this one
+			zone = plotElements['svg'].append('g')
+				.attr('shape-rendering', 'crispEdges')
+			zone.append('line')
+					.attr('x1', xStart)
+					.attr('x2', endOfCanvas)
+					.attr('y1', scaledTop)
+					.attr('y2', scaledTop)
+					.attr('stroke', 'black')
+			zone.append('line')
+					.attr('x1', xStart)
+					.attr('x2', endOfCanvas)
+					.attr('y1', scaledBottom)
+					.attr('y2', scaledBottom)
+					.attr('stroke', 'black')	
+			zone.append('text')
+					.attr('x', labelPlacementX)
+					.attr('y', labelPlacementY)
+					.text(zoneLabel)
+						.attr('text-anchor', 'middle')
+		}
+	}
+	//stratigraphy Column
+	if (config['stratigraphy']['doStratigraphy'] == 'true' || config['stratigraphy']['doStratigraphy'] == true){
+		drawStratigraphyColumn();
 	}
 	setPropertiesExplicity();
 }
@@ -479,11 +535,56 @@ function drawSecondaryAxis(tickInt){
 	plotElements['secondaryAxis'] = axis
 	
 }
+function drawStratigraphyColumn(){
+	console.log("Drawing stratigraphy column")
+	var col = plotElements['svg'].append('g').attr('class', 'col')
+	var diagramWidth = plotElements['diagramWidth']
+	var diagramHeight = plotElements['diagramHeight']
+	var xStart = (diagramWidth * +rules['margins']['left']) + (diagramWidth * +rules['primaryAxis']) + (diagramWidth * +rules['axisPadding']) 
+	if (config['axes']['showSecondaryAxis'] == "true" || config['axes']['showSecondaryAxis'] == true){
+		xStart += (diagramWidth * +rules['secondaryAxis']) + (diagramWidth * +rules['axisPadding'])
+	}
+	var colWidth = diagramWidth * +rules['stratigraphyCol'];
+	var xEnd = xStart + colWidth
+	var axisTop = +plotElements['axisTop']
+	var axisBottom = +plotElements['axisBottom']
+	var colHeight = axisBottom - axisTop
+	col.append("rect")
+		.attr('x', xStart)
+		.attr('y', axisTop)
+		.attr('width', colWidth)
+		.attr('height', colHeight)
+		.attr('fill', 'orange')
+	var columnData = config['stratigraphy']['stratColumn']
+	for (var i=0; i<columnData.length; i++){
+		var layer = columnData[i];
+		var layerTop = layer['layerTop'];
+		var scaledTop = plotElements['yScale'](layerTop);
+		var layerBottom = layer['layerBottom'];
+		var scaledBottom = plotElements['yScale'](layerBottom);
+		var fill = layer['fill']
+		var boundary = layer['boundary'];
+		var topBounds = col.append('line')
+			.attr('x1', xStart)
+			.attr('x2', xEnd)
+			.attr('y1', scaledTop)
+			.attr('y2', scaledTop)
+			.attr('stroke', 'black')
+		var bottomBounds = col.append('line')
+			.attr('x1', xStart)
+			.attr('x2', xEnd)
+			.attr('y1', scaledBottom)
+			.attr('y2', scaledBottom)	
+			.attr('stroke', 'black')
+	}
+}
+
 function setPropertiesExplicity(){
 	//css properties must be set explicity, rather than from css rules
-	console.log("Possible font size: " + (diagramWidth * +rules['fontSize']));
-	d3.selectAll('.axis').selectAll('text').attr('font-family', 'times').style('font-size', +(diagramWidth * +rules['fontSize'])).style('font-weight', 'normal')
-	d3.selectAll('.label').selectAll('text').attr('font-family', 'times').style('font-size', +(diagramWidth * +rules['fontSize'])).style('font-weight', 'normal')
+	axisTickSize = +rules['axisTickSize'] * diagramWidth;
+	labelFontSize = +rules['labelSize'] * diagramWidth;
+	d3.selectAll('g').selectAll('text').attr('font-family', 'times').style('font-size', axisTickSize).style('font-weight', 'normal');
+	a = d3.selectAll('.top').attr('font-family', 'times').style('font-size', labelFontSize).style('font-weight', 'normal')
 	d3.selectAll(".axis").selectAll('path').attr('shape-rendering', 'crispEdges').attr('fill', 'none').attr('stroke', '#000')
 	d3.selectAll(".axis").selectAll('line').attr('shape-rendering', 'crispEdges').attr('fill', 'none').attr('stroke', '#000')
 }

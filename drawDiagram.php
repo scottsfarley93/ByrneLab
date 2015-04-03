@@ -37,21 +37,14 @@ if ($t == "None" or $core == "None" or $user == "None"){
 	header("Location: createPlot.php");
 	die();
 }
-?>
-<?php
-if (isset($GET['core'])){
-	$core = $GET['core'];
-}
+$changeURL = "alterDiagram.php?core=" . urlencode($core) ."&user=" . $user . "&creationTime=". $t;
 ?>
 <!DOCTYPE html>
 <html lang="en">
   <head>
   	<style>
   	#plot{
-  		padding: 10%;
-  	}
-  	#plot{
-  		margin: 10%;
+  		margin: 5%;
   	}
 .axis text {
   font: 10px sans-serif;
@@ -98,12 +91,13 @@ if (isset($GET['core'])){
               </ul>
             </li>
             <li><a href="createPlot.php">Create Plot</a></li>
-            <li><a href="savedProjects.html">Saved Projects</a></li>
+            <li><a href="savedProjects.php">Saved Projects</a></li>
          	          <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Diagram Options <span class="caret"></span></a>
               <ul class="dropdown-menu" role="menu">
                 <li id='download'><a href="#">Download as SVG</a></li>
                 <li id='store'><a href="#">Store on Calpalyn</a></li>
+                <li id='alter'><a href=<?php echo $changeURL ?>>Change Properties</a></li>
               </ul>
             </li>
           </ul>
@@ -154,7 +148,29 @@ if (isset($GET['core'])){
     <script src="js/bootstrap.min.js"></script>
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script src="js/drawDiagram.js"></script>
-    <script src='js/fileSaver.js'></script>
-    
+    <script>
+    console.log("Test")
+    	$("#store").on('click', function(){
+    		c = confirm("Save this diagram on the Calpalyn Platform?")
+    		if (c){
+    			$.ajax({
+    				url: "scripts/saveProject.php",
+    				success: function(response){
+    					alert("Saved to platform")
+    				},
+    				error: function(){
+    					console.log("Ajax error");
+    				},
+    				data: {
+    					core: coreName,
+    					createTime: timestamp
+    				},
+    				beforeSend: function(){
+    					console.log("Saving diagram for core: " + coreName + " created at: " + timestamp);
+    				}
+    			})
+    		}
+    	})
+    </script>
   </body>
 </html>

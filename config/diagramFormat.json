@@ -13,12 +13,18 @@
 	"Ybottom": 0.01,  
 	"primaryAxis": 0.1, 
 	"secondaryAxis": 0.1, 
-	"stratigraphyCol": 0.1, 
+	"stratigraphyCol": 0.05, 
 	"defaultPadding": 0.005,
 	"titleLeft": 0.05,
 	"titleTop" : 0.025,
 	"namePadding": 0.01,
-	"fontSize" : 0.025,
+	"labelSize" : 0.02,
+	"axisTickSize": 0.015,
+	"initialNameOffset": 0.01,
+	"otherNameOffset" : 0.005,
+	"mainZoneLabelSize": 0.02,
+	"subZoneLabelSize": 0.015,
+	"zoneLabelOffset" : 0.05,
 	"dataDescriptions": {
 			"axisPadding": "percentage of diagram space between the primary and secondary and primary and stratigraphy axes",
 			"canvasPadding": "percentage of space between the stratigraphy column or primary axis and the first curve axis",
@@ -33,6 +39,12 @@
 			"titleTop": "percentage of diagram space between the top of the plot and the top of the plot title",
 			"titleLeft" : "percentage of diagram between the left of the plot and the start of the plot title",
 			"namePadding" : "percentage of diagram space between the top of diagram and the start of the name in the Y direction",
-			"fontSize" : "experimental font sizing technique"
+			"labelSize" : "experimental font sizing technique for top labels",
+			"axisTickSize" : "experimental font sizing technique for axis ticks",
+			"initialNameOffset" : "percentage of diagram space that offsets the name from the y-axis of the FIRST curve",
+			"otherNameOffset" : "percentage of diagram space that offsets the name from y-axis of curve 2->n",
+			"mainZoneLabelSize" : "font size multiplier for the zone label",
+			"subZoneLabelSize" : "font size multiplier for the subzone labels",
+			"zoneLabelOffset" : "percentage of diagram space for the zone labels to be offset from the righthand size of the diagram (X-pixels)"
 	}
 }
