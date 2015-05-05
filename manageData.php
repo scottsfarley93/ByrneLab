@@ -57,6 +57,9 @@
     	border-width: 5px;
     	border-color:red;
   	}
+  	#addButton{
+  		margin-top: 3%;
+  	}
   	</style>
   	<style>
       @import url(Cesium/Widgets/widgets.css);
@@ -107,6 +110,7 @@
             <li><a href="savedProjects.php">Saved Projects</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
+          	<li><a href='tickets.php'>Ticket Center</a></li>
             <li><a href="scripts/logout.php">Logout</a></li>
           </ul>
       </div>
@@ -117,14 +121,13 @@
 
       <!-- Main component for a primary marketing message or call to action -->
       <div class="jumbotron">
-		<p>Your Cores</p>
+		<h2 class='page-header'><?php echo $_SESSION['user']?>'s Cores</h2>
       	<div class='row' id='mapContainer'>
 	      	<div id='cesiumContainer'>
 	      	</div>
 	      	<div id='toolbar'></div>
 
       	</div>
-      	<div class='row'><p>List</p></div>
       	<div class='row' id='fileslist'>
       		<button type='button' id='addButton' class='btn btn-primary btn-large'><a id='addLink' href='addNewCore.php'>Add Data</a></button>
       		
@@ -242,6 +245,7 @@
     						listString+= "<li class='list-group-item list-main'><div class='page-header'><h4>" + coreName + "</h4><h5 class='text-muted'>" + siteName + "</h5></div><button type='button' class='btn btn-right btn-info' data-toggle='modal' data-target='#editModal' data-type='Core' data-number="+ i + "><span class='glyphicon glyphicon-edit'></span></button>"
     						 + "<button type='button' class='btn btn-right btn-success'><span class='glyphicon glyphicon-play'></span></button>" ;
 							listString += "<ul class='list-group'><i>Datafiles</i>";
+							
     					if (datafiles.length != 0){	
     						for (x in datafiles){
 	    						var file = datafiles[x];
@@ -275,6 +279,7 @@
     				//link the buttons
     				$(".addChronologyFile").on('click', function(){window.location.href="addNewChronology.php?core=" + coreName});
     				$(".addDataFile").on('click', function(){window.location.href="addNewDatafile.php?core=" + coreName});
+    				$(".glyphicon-play").click(function(){window.location.href='createPlot.php'})
     				}
     				}
     				//do modal popup

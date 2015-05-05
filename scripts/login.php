@@ -3,10 +3,8 @@ session_start();
 require_once("../database_access.php");
 if (isset($_POST['username'])){
 	$username = strip_tags(stripslashes($_POST['username']));
-	
 }else{
-	$username = "";
-	
+	$username = "";	
 }
 if(isset($_POST['password'])){
 	$enteredPass = hash('sha512', $_POST['password']);

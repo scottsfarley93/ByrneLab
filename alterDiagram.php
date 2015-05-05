@@ -59,16 +59,10 @@ if ($_SESSION['loggedIn'] == "TRUE"){
               </ul>
             </li>
             <li><a href="createPlot.php">Create Plot</a></li>
-            <li><a href="savedProjects.html">Saved Projects</a></li>
-         	          <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">Diagram Options <span class="caret"></span></a>
-              <ul class="dropdown-menu" role="menu">
-                <li id='download'><a href="#">Download as SVG</a></li>
-                <li id='store'><a href="#">Store on Calpalyn</a></li>      
-              </ul>
-            </li>
+            <li><a href="savedProjects.php">Saved Projects</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
+          	<li><a href='tickets.php'>Ticket Center</a></li>
             <li><a href="cgi-bin/logout.php">Logout</a></li>
           </ul>
       </div>
@@ -148,7 +142,10 @@ if ($_SESSION['loggedIn'] == "TRUE"){
 						<li class='list-group-item'>Outline Color<input type='color' id='outline'/></li>
 						<li class='list-group-item'>Normalization Type<select id='normType'><option value='none'>--None--</option></select></li>
 						<li class='list-group-item'>500% Curve<input type='checkbox' id='500Curve'/></li>
-						<li class='list-group-item'>Plot Type <select id='plotType'><option value='curve'>Curve</option><option value='bar'>Bar Chart</option></select></li>
+						<li class='list-group-item'>Plot Type <select id='plotType'><option value='curve'>Curve</option>
+										<option value='bar'>Bar Chart</option>
+										<option value='delta'>Curve around the Mean</option>
+										</select></li>
 						<li class='list-group-item'>Group <select id='group'>
 								<option value='none'>--None--</option>
 								<option value='herbs'>Herbs</option>
@@ -325,7 +322,19 @@ if ($_SESSION['loggedIn'] == "TRUE"){
 		$("#stratTableBody").empty();
 		for (var i=0; i< col.length; i++){
 			var layer = col[i]
-			s = "<tr id='strat" + i + "'><td class='stratLabel'>" + layer['label'] + "</td><td class='stratTop'>" + +layer['layerTop'] + "</td><td class='stratBottom'>" + +layer['layerBottom'] + "</td><td><select class='fillDropdown'><option value='none'>--None--</option></select></td>"
+			s = "<tr id='strat" + i + "'><td class='stratLabel'>" + layer['label'] + "</td><td class='stratTop'>" + +layer['layerTop'] + "</td><td class='stratBottom'>" + +layer['layerBottom'] + "</td><td><select class='fillDropdown'><option value='none'>--None--</option>"
+				s += "<option value=1>Horizontal Lines</option>"
+	s += "<option value=2>Vertical Lines</option>"
+	s += "<option value=3>Oblique Lines</option>"
+	s += "<option value=4>Dots</option>"
+	s += "<option value=5>Doughnuts</option>"
+	s += "<option value=6>Hexagons</option>"
+	s += "<option value=7>Crosses</option>"
+	s += "<option value=8>Caps</option>"
+	s += "<option value=9>Woven</option>"
+	s += "<option value=10>Waves</option>"
+	s += "<option value=11>Nylon</option>" 
+	s += "</select></td>"
 			s += "<td><select class='layerBoundary'><option value='none'>--None--</option></select></td><td><button class='glyphicon glyphicon-remove btn-danger removeStrat'></button></tr>"
 			$("#stratTableBody").append(s)
 		}
@@ -337,8 +346,20 @@ if ($_SESSION['loggedIn'] == "TRUE"){
 		addStratigraphy(config)
 	})
 	$("#addStratLayerButton").click(function(){
-		s = "<tr><td class='stratLabel'>None</td><td class='stratTop'>0</td><td class='stratBottom'>0</td><td><select class='fillDropdown'><option value='none'>--None--</option></select></td>"
-			s += "<td><select class='boundaryDropdown'><option value='none'>--None--</option></select></td><td><button class='glyphicon glyphicon-remove btn-danger removeStrat'></button></tr>"
+		s = "<tr><td class='stratLabel'>None</td><td class='stratTop'>0</td><td class='stratBottom'>0</td><td><select class='fillDropdown'><option value='none'>--None--</option>"
+	s += "<option value=1>Horizontal Lines</option>"
+	s += "<option value=2>Vertical Lines</option>"
+	s += "<option value=3>Oblique Lines</option>"
+	s += "<option value=4>Dots</option>"
+	s += "<option value=5>Doughnuts</option>"
+	s += "<option value=6>Hexagons</option>"
+	s += "<option value=7>Crosses</option>"
+	s += "<option value=8>Caps</option>"
+	s += "<option value=9>Woven</option>"
+	s += "<option value=10>Waves</option>"
+	s += "<option value=11>Nylon</option>" 
+	s += "</select></td>"
+	s += "<td><select class='boundaryDropdown'><option value='none'>--None--</option></select></td><td><button class='glyphicon glyphicon-remove btn-danger removeStrat'></button></tr>"
 		$("#stratTableBody").append(s);
 		$(".removeStrat").click(function(){
 			$(this).closest("tr").remove();
@@ -405,7 +426,7 @@ if ($_SESSION['loggedIn'] == "TRUE"){
 		var bottoms = $(".stratBottom")
 		var fills = $(".fillDropdown")
 		var boundaries = $(".boundaryDropdown")
-		config['zonation']['zonation'] = [];
+		config['stratigraphy']['stratColumn'] = [];
 		for (var i=0;i< labels.length; i++){
 			var label = $(labels[i]).text();
 			var top = $(tops[i]).text()

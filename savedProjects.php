@@ -1,7 +1,6 @@
 <?php
 session_start();
 //check credentials and get session user
-session_start();
 if ($_SESSION['loggedIn'] == "TRUE"){
 	$user = $_SESSION['user'];
 	$sessionUser = $_SESSION['user'];
@@ -57,6 +56,7 @@ if ($_SESSION['loggedIn'] == "TRUE"){
             <li><a href="savedProjects.php">Saved Projects</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
+          	<li><a href='tickets.php'>Ticket Center</a></li>
             <li><a href="scripts/logout.php">Logout</a></li>
           </ul>
       </div>
@@ -143,14 +143,17 @@ if ($_SESSION['loggedIn'] == "TRUE"){
     		},
     		type:"GET",
     		success: function(response){
-    			var response = JSON.parse(response);
+    			console.log(response)
+    				var response = JSON.parse(response);
+    			
     			//erase the existing modal
-
     			for (var i=0; i<response.length; i++){
     				proj = response[i];
+    				var core = proj['Core']
+    				core = core.split("+").join(" ")
     				s = "<li class='list-group-item'><button class='glyphicon glyphicon-eye-open viewDiagramDetails btn-primary' data-toggle='modal' data-target='#details-modal' data-project='" + proj['ProjectIndex'] + "'></button>"
-    				s += "Diagram for Core: " + proj['Core'];
-    				s += "<span class='right'>" + proj['LastUpdated'] + "</span></li>"
+    				s += "Diagram for Core: " + core;
+    				s += "<span class='right'>" + proj['lastDrawnTimestamp'] + "</span></li>"
     				$("#savedProjectsList").append(s);
     			}
     			
@@ -177,7 +180,7 @@ if ($_SESSION['loggedIn'] == "TRUE"){
 		    		//load the cpn file and give the user some background on the diagram
 		    		$.ajax({
 		    			url: file,
-		    			contentType: "json",
+		    			//contentType: "json",
 		    			success: function(response){
 		    				$("#indicator").html("")
 		    				var config = JSON.parse(response)
@@ -187,8 +190,8 @@ if ($_SESSION['loggedIn'] == "TRUE"){
 		    				var width = config['plotWidth'];
 		    				var height = config['plotHeight'];
 		    				var showStratigraphy = config['stratigraphy']['doStratigraphy'];
-		    				var createdAt = config['createdAt'];
-		    				var lastDrawn = config['lastDrawn'];
+		    				var createdAt = config.createdAt
+		    				var lastDrawn = config.lastDrawn
 		    				$("#taxa-list").empty();
 		    				for (var x =0; x<numTaxa; x++){
 		    					var t = config['taxa'][x]['name'];

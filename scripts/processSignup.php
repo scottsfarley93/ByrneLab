@@ -32,7 +32,7 @@ if(mysqli_num_rows($result) != 0){
 		die(-1);
 	}else{
 		//simulate login by setting session values
-		$_SESSION['user'] = '$username';
+		$_SESSION['user'] = $username;
 		$_SESSION['loggedIn'] = "TRUE";
 		echo "1";
 	}

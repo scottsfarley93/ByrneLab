@@ -102,7 +102,8 @@ $changeURL = "alterDiagram.php?core=" . urlencode($core) ."&user=" . $user . "&c
             </li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
-            <li><a href="cgi-bin/logout.php">Logout</a></li>
+          	<li><a href='tickets.php'>Ticket Center</a></li>
+            <li><a href="scripts/logout.php">Logout</a></li>
           </ul>
       </div>
     </nav>
@@ -147,6 +148,7 @@ $changeURL = "alterDiagram.php?core=" . urlencode($core) ."&user=" . $user . "&c
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="js/texture/textures.min.js"></script>
     <script src="js/drawDiagram.js"></script>
     <script>
     console.log("Test")
@@ -156,8 +158,10 @@ $changeURL = "alterDiagram.php?core=" . urlencode($core) ."&user=" . $user . "&c
     			$.ajax({
     				url: "scripts/saveProject.php",
     				success: function(response){
-    					alert("Saved to platform")
+    					console.log(response)
+    					alert(response)
     				},
+    				type: "POST",
     				error: function(){
     					console.log("Ajax error");
     				},

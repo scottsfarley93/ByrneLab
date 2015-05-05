@@ -83,6 +83,7 @@
             <li><a href="savedProjects.php">Saved Projects</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
+          	<li><a href='tickets.php'>Ticket Center</a></li>
             <li><a href="scripts/logout.php">Logout</a></li>
           </ul>
       </div>

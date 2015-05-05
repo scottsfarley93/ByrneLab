@@ -1,7 +1,7 @@
 //THIS FILE IS createPlotClient
 //This file handles setting object properties and saving them into a configuration file.  No actual data display is done in this file.
 //TODO: 1.  fix subtotal coloring
-console.log("Running version 3.0.1")
+console.log("Running version 4.0.1")
 ////////////////config keeps to graphing paramters and will be passed to the server with everything necessary to draw the graph////////
 config = {
 	title : "", //title of plot to be displayed
@@ -27,19 +27,18 @@ config = {
 			//controls the normalization of data using apfac techniques.  
 			//both grains per unit volume and accumulation rate are possible to compute.
 			//Calculated at runtime
-			doVolumeApfac: false,
-			doMassApfac: false,
-			volumeVolumeField: {file: "", fileIndex: "", fieldName: ""}, //volume field for calculating the volume apfac
-			volumeControlField: {file: "", fileIndex: "", fieldName: ""}, //field with # of control grains for the volume apfac
-			massMassField: {file: "", fileIndex: "", fieldName: ""}, //field with mass for calculation of mass/accumulation apfac
-			massControField: {file: "", fileIndex: "", fieldName: ""}, // field with number of control grains for the mass apfac
-			massYearField: {file: "", fileIndex: "", fieldName: ""},  //field with number of years in sample for accumulation apfac
+			doApfac: false,
+			apfacControlCountField: {file: "", fileIndex: "", fieldName: ""}, //volume field for calculating the volume apfac
+			apfacTotalControlField: {file: "", fileIndex: "", fieldName: ""}, //field with # of control grains for the volume apfac
+			apfacYearsField: {file: "", fileIndex: "", fieldName: ""}, //field with mass for calculation of mass/accumulation apfac
+			apfacThicknessField: {file: "", fileIndex: "", fieldName: ""}, // field with number of control grains for the mass apfac
+			apfacVolumeField: {file: "", fileIndex: "", fieldName: ""},  //field with number of years in sample for accumulation apfac
 			//arrays of {depth, value} pairs for each field
-			volumeVolumeMatrix: [],
-			volumeControlMatrix: [],
-			massMassMatrix: [],
-			massControlMatrix: [],
-			massYearMatrix: []
+			apfacControlCountMatrix: [],
+			apfacTotalControlMatrix: [],
+			apfacYearsMatrix: [],
+			apfacThicknessMatrix: [],
+			apfacVolumeMatrix: []
 		}
 	},//end normalization
 	plotHeight: 0, //in pixels
@@ -126,6 +125,7 @@ $("#nextButton").on('click', function(){
 	page += 1;
 })
 
+apfacNumSet = 0
 var now = new Date();
 config.lastDrawn = now.toLocaleString();
 config.createdAt = now.toLocaleString();
@@ -173,6 +173,24 @@ $.ajax({
 		
 	}
 })
+
+function getPPI(){
+	 // create an empty element
+	 var div = document.createElement("div");
+	 // give it an absolute size of one inch
+	 div.style.width="1in";
+	 // append it to the body
+	 var body = document.getElementsByTagName("body")[0];
+	 body.appendChild(div);
+	 // read the computed width
+	 var ppi = document.defaultView.getComputedStyle(div, null).getPropertyValue('width');
+	 // remove it again
+	 body.removeChild(div);
+	 // and return the value
+	 return parseFloat(ppi);
+}
+
+ppi = getPPI();
 //generates random colors for subtotal color coding
 function getRandomColor() {
     var letters = '0123456789ABCDEF'.split('');
@@ -248,7 +266,7 @@ function addToSubtotal(){
 			current_val = $(st).val()
 			new_val= current_val + name + ", "
 			$(st).val(new_val)
-			
+			console.log("Adding: " + name + " to subtotal: " + current_subtotal)
 		}
 	}else if(!checked){
 		parent.css('color', 'black')
@@ -315,41 +333,29 @@ function loadTaxa(){$.ajax({
 			var file = r[i];
 			var fileName = file['File'];
 			var taxa = file['Taxa']
-			var str = "<div class='page-header '>";
-			str += "<h4>" + fileName + "</h4>";
+			var str = "<div class='row'>";
+			str += "<h4 class='page-header'>" + fileName + "</h4>";
 			subString = str
 			str += "<ul class='checkbox-grid'>";
 			subString += "<ul class='checkbox-grid subtotal' >"
 			var sumFieldString = "<optgroup label='" + fileName + "'>"
-			volumeVolumeString = "<optgroup label='" + fileName + "'>"
-			volumeControlString = "<optgroup label='" + fileName + "'>"
-			massMassString = "<optgroup label='" + fileName + "'>"
-			massControlString = "<optgroup label='" + fileName + "'>"
-			massYearString = "<optgroup label='" + fileName + "'>"
+			apfacString = "<optgroup label='" + fileName + "'>"
 			for (var t=1; t<taxa.length; t++){
 				taxonName = taxa[t]
 				str += "<li class='taxon-row'><input class='taxon-input subtotal-checkbox' data-name='" + taxonName + "' type='checkbox' data-number='" + t + "' data-file='" + fileName +  "'><p class='taxon'>" + taxonName + "<p></li>"
 				subString += "<li class='subtotal-row'><input class='taxon-subtotal' data-name='" + taxonName + "' type='checkbox' data-number='" + t + "' data-file='" + fileName +  "' disabled><p class='subtotalTaxonName'>" + taxonName + "<p></li>"
 				sumFieldString += "<option value='" + taxonName + "'>" + taxonName + "</option>"
-				volumeVolumeString += "<option value='" + taxonName + "'>" + taxonName + "</option>"
-				volumeControlString += "<option value='" + taxonName + "'>" + taxonName + "</option>"
-				massMassString += "<option value='" + taxonName + "'>" + taxonName + "</option>"
-				massControlString += "<option value='" + taxonName + "'>" + taxonName + "</option>"
-				massYearString += "<option value='" + taxonName + "'>" + taxonName + "</option>"
+				apfacString += "<option value='" + taxonName + "'>" + taxonName + "</option>"
 			}
 			$("#subtotalTaxaHolder").append(subString + "</ul>" + "</div><br />");
 			sumFieldString += "</optgroup>"
 			$("#sumFieldDropdown").append(sumFieldString);
-			volumeVolumeString += "</optgroup>"
-			$("#volumeVolumeSelect").append(volumeVolumeString)
-			volumeControlString += "</optgroup>"
-			$("#volumeControlSelect").append(volumeControlString)
-			massMassString += "</optgroup>"
-			$("#massMassSelect").append(massMassString);
-			massControlString += "</optgroup>"
-			$("#massControlSelect").append(massControlString)
-			massYearString = "</optgroup>"
-			$("#massYearsSelect").append(massYearString);
+			apfacString += "</optgroup>"
+			$("#apfacControlCountSelect").append(apfacString)
+			$("#apfacTotalControlSelect").append(apfacString)
+			$("#apfacYearsSelect").append(apfacString);
+			$("#apfacThickSelect").append(apfacString)
+			$("#apfacVolumeSelect").append(apfacString);
 			str += "</ul>"
 			str+="</div><br />"
 			$("#taxaHolder").append(str);	
@@ -369,47 +375,63 @@ function loadTaxa(){$.ajax({
 			}
 		})
 		//apfac --> volume
-		$("#volumeVolumeSelect").change(function(){
+		$("#apfacControlCountSelect").change(function(){
 			var selected = $(':selected', this);
 			var index = selected.index();
     		s = selected.closest('optgroup').attr('label')
     		console.log(index)
-    		config.normalization.apfac['volumeVolumeField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
-    		config.normalization.apfac['doVolumeApfac'] = true
+    		config.normalization.apfac['apfacControlCountField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
+    		apfacNumSet += 1
+			if (apfacNumSet == 5){
+				config.normalization.apfac['doApfac'] = true
+			}
 		})
-		$("#volumeControlSelect").change(function(){
+		$("#apfacTotalControlSelect").change(function(){
 			var selected = $(':selected', this);
 			var index = selected.index();
     		s = selected.closest('optgroup').attr('label')
     		console.log(s)
     		console.log(index)
-    		config.normalization.apfac['volumeControlField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
-    		config.normalization.apfac['doVolumeApfac'] = true
+    		config.normalization.apfac['apfacTotalControlField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
+    		apfacNumSet +=1
+
+			if (apfacNumSet == 5){
+				config.normalization.apfac['doApfac'] = true
+			}
 		})
-		$("#massMassSelect").change(function(){
+		$("#apfacYearsSelect").change(function(){
 			var selected = $(':selected', this);
 			var index = selected.index();
     		s = selected.closest('optgroup').attr('label')
     		console.log(s)
-			config.normalization.apfac['massMassField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
-			config.normalization.apfac['doMassApfac'] = true
+			config.normalization.apfac['apfacYearsField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
+			apfacNumSet += 1
+			if (apfacNumSet == 5){
+				config.normalization.apfac['doApfac'] = true
+			}
 		})
-		$("#massControlSelect").change(function(){
-			
+		$("#apfacThickSelect").change(function(){
 			var selected = $(':selected', this);
 			var index = selected.index();
     		s = selected.closest('optgroup').attr('label')
     		console.log(s)
-			config.normalization.apfac['massMassField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
-			config.normalization.apfac['doMassApfac'] = true
+			config.normalization.apfac['apfacThicknessField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
+			apfacNumSet +=1
+			apfacNumSet += 1
+			if (apfacNumSet == 5){
+				config.normalization.apfac['doApfac'] = true
+			}
 		})
-		$("#massYearsSelect").change(function(){
+		$("#apfacVolumeSelect").change(function(){
 			var selected = $(':selected', this);
 			var index = selected.index();
     		s = selected.closest('optgroup').attr('label')
     		console.log(s)
-			config.normalization.apfac['massYearField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
-			config.normalization.apfac['doMassApfac'] = true
+			config.normalization.apfac['apfacVolumeField'] = {file:s, fieldName: $(this).val(), fileIndex: index};
+			apfacNumSet += 1
+			if (apfacNumSet == 5){
+				config.normalization.apfac['doApfac'] = true
+			}
 		})
 		//handle clicks on the taxa checkbox grid
 		$(".taxon-input").click(function(){
@@ -593,20 +615,19 @@ function showGraphingOptions(){
 		}
 		if (config['normalization']['subtotals']['numSubtotals'] > 0){
 			for (var q = 0; q< config['normalization']['subtotals']['numSubtotals']; q++){
-				tString += "<option value='sub'" + q + "'>Percentage of Subtotal #" + (q+1) + "</option>"
+				tString += "<option value='sub" + q + "'>Percentage of Subtotal #" + (q+1) + "</option>"
 			}
 		}
-		if (config['normalization']['apfac']['doVolumeApfac']== true){
-			tString += "<option value='volumeApfac'>As grains per unit volume </option>"
-		}
-		if (config['normalization']['apfac']['doMassApfac'] == true){
-			tString += "<option value='massApfac'>As accumulation rate</option>"
+		if (config['normalization']['apfac']['doApfac']== true){
+			tString += "<option value='apfac'>As Pollen Accumulation Rate </option>"
 		}
 		tString += "</select></li>"
 		tString += "<li class='list-group-item taxa-options'>500% Curve <input id='exagCurve" + i + "' type='checkbox'></li>"
 		tString += "<li class='list-group-item taxa-options'>Plot Type <select id='plotType" + i + "'>"
 		tString += "<option value='curve'>Curve</option>"
-		tString += "<option value='bar'>Bar Chart</option></select></li>"
+		tString += "<option value='bar'>Bar Chart</option>"
+		tString += "<option value='delta'>Curve around the Mean</option>"
+		tString += "</select></li>"
 		tString += "<li class='list-group-item taxa-options'>Group<select id='grouping" + i + "'>"
 		tString += "<option value='none'>--None--</option>"
 		tString += "<option value='herbs'>Herbs</option>"
@@ -676,6 +697,17 @@ $("#addStratLayerButton").click(function(){
 	currentStratLayer = config['stratigraphy']['numLayers'];
 	s = "<tr id='stratRow" + currentStratLayer + "'><td><input type='text' class='stratLabel'/></td><td><input type='number' class='stratTop'/></td><td><input type='number' class='stratBottom'/></td>"
 	s += "<td><select class='stratFill'><option value='0'>--None--</option>" 
+	s += "<option value=1>Horizontal Lines</option>"
+	s += "<option value=2>Vertical Lines</option>"
+	s += "<option value=3>Oblique Lines</option>"
+	s += "<option value=4>Dots</option>"
+	s += "<option value=5>Doughnuts</option>"
+	s += "<option value=6>Hexagons</option>"
+	s += "<option value=7>Crosses</option>"
+	s += "<option value=8>Caps</option>"
+	s += "<option value=9>Woven</option>"
+	s += "<option value=10>Waves</option>"
+	s += "<option value=11>Nylon</option>" 
 	s += "<td><select class='stratBoundary'><option value='0'>--None--</option></select></td></tr>";
 	$("#stratTable").append(s);
 	config['stratigraphy']['numLayers'] +=1
@@ -882,7 +914,7 @@ $(".btn").click(function(){
 			}
 			//now go through the normalizations
 			//first subtotals
-			//TODO:  Check to make sure that these are the right fields
+
 			var subtotals = config['normalization']['subtotals']['subtotals'];
 			for (var i=0; i<config['normalization']['subtotals']['numSubtotals']; i++){
 				console.log(i);
@@ -894,52 +926,74 @@ $(".btn").click(function(){
 					var file = item['file'];
 					console.log(file)
 					var index = item['fileIndex'];
+					var name = item['name'];
+					console.log(name);
 					console.log(index);
 					if (fileLookup[file] === undefined || fileLookup[file].length == 0){
 						fileLookup[file] = [];
 					}
-					var index = +item['fileIndex'] + 1;
+					var index = +item['fileIndex'];
 					if (fileLookup[file].indexOf(index) == -1){
 						fileLookup[file].push(index);
 					}
 				}
 			}
 			//now the apfacs if they are enabled
-			if (config['normalization']['apfac']['doMassApfac']){
-				file1 = config['normalization']['apfac']['massMassField']['file']
-				fileLookup[file1] = []
-				if (fileLookup[file1] === undefined || fileLookup[file1].length == 0){
-					fileLookup[file1] = [];
+			if (config['normalization']['apfac']['doApfac']){
+				field1 = config['normalization']['apfac']['apfacControlCountField']
+				file = field1['file']
+				index = field1['fileIndex']
+				fileLookup[file] = []
+				if (fileLookup[file] === undefined || fileLookup[file].length == 0){
+					fileLookup[file] = [];
 				}
-				var index = +config['normalization']['apfac']['massMassField']['fileIndex'] + 1;
-				if (fileLookup[file2].indexOf(index) == -1){
-					fileLookup[file1].push(index);
+				var index = +index + 1;
+				if (fileLookup[file].indexOf(index) == -1){
+					fileLookup[file].push(index);
 				}
-				file2 = config['normalization']['apfac']['massControlField']['file'];
-				if (fileLookup[file2] === undefined || fileLookup[file2].length == 0){
-					fileLookup[file2] = [];
+				////
+				field2 = config['normalization']['apfac']['apfacTotalControlField']
+				file = field2['file']
+				index = field2['fileIndex']
+				if (fileLookup[file] === undefined || fileLookup[file].length == 0){
+					fileLookup[file] = [];
 				}
-				var index = +config['normalization']['apfac']['massControlField']['fileIndex'] + 1;
-				if (fileLookup[file2].indexOf(index) == -1){
-					fileLookup[file2].push(index);
+				var index = +index + 1;
+				if (fileLookup[file].indexOf(index) == -1){
+					fileLookup[file].push(index);
 				}
-			}
-			if (config['normalization']['apfac']['doVolumeApfac']){
-				file1 = config['normalization']['apfac']['volumeVolumeField']['file'];
-				if (fileLookup[file1] === undefined || fileLookup[file1].length == 0){
-					fileLookup[file1] = [];
+				////
+				field3 = config['normalization']['apfac']['apfacYearsField']
+				file = field3['file']
+				index = field3['fileIndex']
+				if (fileLookup[file] === undefined || fileLookup[file].length == 0){
+					fileLookup[file] = [];
 				}
-				var index = +config['normalization']['apfac']['volumeVolumeField']['fileIndex'] + 1;
-				if (fileLookup[file1].indexOf(index) == -1){
-					fileLookup[file1].push(index);
+				var index = +index + 1;
+				if (fileLookup[file].indexOf(index) == -1){
+					fileLookup[file].push(index);
 				}
-				file2 = config['normalization']['apfac']['volumeControlField']['file'];
-				if (fileLookup[file2] === undefined || fileLookup[file2].length == 0){
-					fileLookup[file2] = [];
+				////
+				field4 = config['normalization']['apfac']['apfacThicknessField']
+				file = field4['file']
+				index = field4['fileIndex']
+				if (fileLookup[file] === undefined || fileLookup[file].length == 0){
+					fileLookup[file] = [];
 				}
-				var index = +config['normalization']['apfac']['volumeControlField']['fileIndex'] + 1;
-				if (fileLookup[file2].indexOf(index) == -1){
-					fileLookup[file2].push(index);
+				var index = +index + 1;
+				if (fileLookup[file].indexOf(index) == -1){
+					fileLookup[file].push(index);
+				}
+				/////
+				field5 = config['normalization']['apfac']['apfacVolumeField']
+				file = field5['file']
+				index = field5['fileIndex']
+				if (fileLookup[file] === undefined || fileLookup[file].length == 0){
+					fileLookup[file] = [];
+				}
+				var index = +index + 1;
+				if (fileLookup[file].indexOf(index) == -1){
+					fileLookup[file].push(index);
 				}
 			}
 			//sumtotal field
@@ -954,7 +1008,6 @@ $(".btn").click(function(){
 					fileLookup[file].push(index);
 				}
 			}
-			console.log(fileLookup)
 			filesList = Object.keys(fileLookup)
 			///get the file names via the database
 			console.log(filesList);
@@ -974,7 +1027,8 @@ $(".btn").click(function(){
 						config['axes']['minDepth'] = response['MinDepth'];
 						config['axes']['maxDepth'] = response['MaxDepth'];
 						responseList = response['fileLookup'];
-						parseFiles(responseList);
+						//parseFiles(responseList);
+						testFiles(responseList);
 					}else{
 						alert("Server Error.  Check log for details.");
 						console.log(response['ErrorMessage'])
@@ -987,28 +1041,24 @@ $(".btn").click(function(){
 					console.log("Preparing to obtain datafiles from server.")
 				}
 			})
-			function parseFiles(fList){
-				console.log("Now Parsing Files, this is fList: ")
-				for (i in fList){
-					//iterate through files and parse them 
-					//names shouldbe consistent between fList and fileLookup objects so we can cross reference
-					var fObject = fList[i];
-					var fName = fObject['Name']; //file name
-					var fFile = fObject['File']; //actual file
-					var indeces = fileLookup[fName]; //indeces for the taxa in the file
-					console.log(indeces);
-					f = Papa.parse(fFile, {
-						download: true,
-						worker: true,
-						header: false,
-						complete: function(parsedFile){
+			function testFiles(fList){
+				var lock = false; //keeps the file locked so we can place the values correctly.
+				console.log(fList);
+				var i =0;
+				while (i < fList.length){
+					function parse(file, indeces, fName){
+						if (!lock){
+							lock = true;
+							f = Papa.parse(file, {
+								download: true,
+								worker: true,
+								header: false,
+								complete: function(parsedFile){
 							var data = parsedFile['data'];
 							var numLevels = data.length; 
 							for (var x=0; x< indeces.length; x++){
-								
 								//iterate through the taxa in this file
 								index = indeces[x];
-								alert(data[0][index])
 								//check depth column and get index
 								var depthIndex;
 								var header = data[0];
@@ -1019,13 +1069,14 @@ $(".btn").click(function(){
 									depthIndex = header.indexOf('Depth')
 								}
 								if (depthIndex == -1 || depthIndex == null || depthIndex == undefined){
-									alert("Incorrectly formatted data file.  Please refer to software manual. Aborting script.");
+									alert("Incorrectly formatted data file: no depth column found.  Please refer to software manual. Aborting script.");
 									throw "No depth column found in data file.  Aborting."
 								}
 								for (var q=0; q< config['taxa'].length; q++){
 									//put the values into the right place in the config file
 									configTaxon = config['taxa'][q];
 									if ((configTaxon['file'] == fName) && (configTaxon['fileIndex'] == index)){
+										//alert("File Name: " + fName + "\nConfig File " + configTaxon['file'] + " \nFile Index: " + index + "\nConfig Index: " + configTaxon['fileIndex'])
 										values = [];
 										for (var w=1; w<numLevels; w++){ //start at 1 because the first row is header
 											//iterate through the levels and collect the values
@@ -1034,8 +1085,9 @@ $(".btn").click(function(){
 											var depth = level[depthIndex];
 											values.push({depth: depth, value: val});
 										}
-										config['taxa'][x]['valuesMatrix'] = values;
+										config['taxa'][q]['valuesMatrix'] = values;
 										console.log("Updated values for: " + config['taxa'][q]['name']);
+										console.log(config['taxa'][q])
 									}
 								}
 								//now place the normalizations
@@ -1061,9 +1113,11 @@ $(".btn").click(function(){
 										console.log("Updated values for: data sum normalization");
 									}
 								}
-								if (config['normalization']['apfac']['doMassApfac']){
-									var file = config['normalization']['apfac']['massMassField']['file'];
-									var fileIndex = config['normalization']['apfac']['massMassField']['fileIndex'];
+								if (config['normalization']['apfac']['doApfac']){
+									/////
+									countedField = config['normalization']['apfac']['apfacControlCountField']
+									var file = countedField['file'];
+									var fileIndex = countedField['fileIndex'] + 1;
 									if ((file == fName) && (fileIndex == index)){
 										values = [];
 										for (var w = 0; w< numLevels; w++){
@@ -1072,12 +1126,14 @@ $(".btn").click(function(){
 											var depth = level[depthIndex];
 											values.push({depth:depth, value: val});
 										}
-										config['normalization']['normalization']['apfac']['massMassMatrix'] = values;
-										console.log("Updated values for: mass value field");
+										console.log(values)
+										config['normalization']['apfac']['apfacControlCountMatrix'] = values;
+										console.log("Updated Values for control counts.")
 									}
-									//can't do this in a single loop because these fields may be located in different files
-									var file = config['normalization']['apfac']['massControlField']['file'];
-									var fileIndex = config['normalization']['apfac']['massControlField']['fileIndex'];
+									///////
+									totalField = config['normalization']['apfac']['apfacTotalControlField']
+									var file = totalField['file'];
+									var fileIndex = totalField['fileIndex']+1;
 									if ((file == fName) && (fileIndex == index)){
 										values = [];
 										for (var w = 0; w< numLevels; w++){
@@ -1086,13 +1142,13 @@ $(".btn").click(function(){
 											var depth = level[depthIndex];
 											values.push({depth:depth, value: val});
 										}
-										config['normalization']['normalization']['apfac']['massControlMatrix'] = values;
-										console.log("Updated values for: mass control field");
+										config['normalization']['apfac']['apfacTotalControlMatrix'] = values;
+										console.log("Updated Values for total counts.")
 									}
-								}
-								if (config['normalization']['apfac']['doVolumeApfac']){
-									var file = config['normalization']['apfac']['volumeVolumeField']['file'];
-									var fileIndex = config['normalization']['apfac']['volumeVolumeField']['fileIndex'];
+									///////
+									yearsField = config['normalization']['apfac']['apfacYearsField']
+									var file = yearsField['file'];
+									var fileIndex = yearsField['fileIndex']+1;
 									if ((file == fName) && (fileIndex == index)){
 										values = [];
 										for (var w = 0; w< numLevels; w++){
@@ -1101,12 +1157,13 @@ $(".btn").click(function(){
 											var depth = level[depthIndex];
 											values.push({depth:depth, value: val});
 										}
-										config['normalization']['apfac']['volumeVolumeMatrix'] = values;
-										console.log("Updated values for: volume value field");
+										config['normalization']['apfac']['apfacYearsMatrix'] = values;
+										console.log("Updated values for years in sample.")
 									}
-									//can't do this in a single loop because these fields may be located in different files
-									var file = config['normalization']['apfac']['volumeControlField']['file'];
-									var fileIndex = config['normalization']['apfac']['volumeControlField']['fileIndex'];
+									///////
+									volumeField = config['normalization']['apfac']['apfacVolumeField']
+									var file = volumeField['file'];
+									var fileIndex = volumeField['fileIndex']+1;
 									if ((file == fName) && (fileIndex == index)){
 										values = [];
 										for (var w = 0; w< numLevels; w++){
@@ -1115,9 +1172,25 @@ $(".btn").click(function(){
 											var depth = level[depthIndex];
 											values.push({depth:depth, value: val});
 										}
-										config['normalization']['apfac']['volumeControlMatrix'] = values;
-										console.log("Updated values for: volume control matrix");
+										config['normalization']['apfac']['apfacVolumeMatrix'] = values;
+										console.log("Updated values for volume of sample.")
 									}
+									///////
+									thickField = config['normalization']['apfac']['apfacThicknessField']
+									var file = thickField['file'];
+									var fileIndex = thickField['fileIndex'] + 1;
+									if ((file == fName) && (fileIndex == index)){
+										values = [];
+										for (var w = 0; w< numLevels; w++){
+											var level = data[w];
+											var val = level[index];
+											var depth = level[depthIndex];
+											values.push({depth:depth, value: val});
+										}
+										config['normalization']['apfac']['apfacThicknessMatrix'] = values;
+										console.log("Updated values for thickness of sample.")
+									}
+									alert(config['taxa'][0]['valuesMatrix'].length)
 								}
 								for (var k=0; k<config['normalization']['subtotals']['numSubtotals']; k++){
 									st = config['normalization']['subtotals']['subtotals'][k+1];
@@ -1139,21 +1212,30 @@ $(".btn").click(function(){
 										}
 									}
 								}
-								console.log("Iteration complete");
-							}
-							dataCollected = true;
-							console.log("All data has been collected from data files.")		
-							console.log(config['taxa']);		
-						}
-					})
-					
-				}
-			};
 
+								lock = false
+								}
+						}}
+						)//end of papa parse
+						}else{
+							console.log("Locked.  Waiting... i=" + i)
+							setTimeout(function(){
+								parse(file, indeces, nameOfFile)
+							}, 5);
+						}
+					}
+					var file = fList[i]['File'];
+					var nameOfFile = fList[i]['Name'];
+					var indeces = fileLookup[nameOfFile];
+					parse(file, indeces, nameOfFile);
+					i += 1
+				}	
+			}
 			break
 			
 		case 6:
 		//axes --> primary axis select, secondary axis options, axis titles
+			console.log(config)
 			checkChronology()
 			$("#plotTitleDiv").hide()
 			$("#selectCoreDiv").hide()
@@ -1169,9 +1251,16 @@ $(".btn").click(function(){
 			$("#axesMenu").addClass("active")
 			$("#extraMenu").removeClass('active list-group-item-success')
 			//get plot dimensions from previous page
-			var height = $("input[name=page-size]:checked").attr('height')
-			var width = $("input[name=page-size]:checked").attr('width')
-			var units = $("input[name=page-size]:checked").attr('units')
+			if ($("#customWidthInput").val() != "" && $("#customHeightInput").val() != ""){
+				var height = $("#customHeightInput").val()
+				var width = $("#customWidthInput").val()
+				var units = "in";
+			}else{
+				var height = $("input[name=page-size]:checked").attr('height')
+				var width = $("input[name=page-size]:checked").attr('width')
+				var units = $("input[name=page-size]:checked").attr('units')
+			}
+			
 			console.log(height)
 			//convert to px using 72 px per inch and 28 px per cm
 			if (width == 'page' || height == 'page'){
@@ -1179,11 +1268,11 @@ $(".btn").click(function(){
 				heightPX = $(document).height() 
 				widthPX = $(document).width() * 0.75
 			}else if (units == 'cm'){
-				heightPX = height * 28;
-				widthPX = width * 28;
+				heightPX = height *0.393701 * ppi;
+				widthPX = width *0.393701 * ppi;
 			}else if (units == 'in'){
-				heightPX = height * 72;
-				widthPX = width * 72;
+				heightPX = height * ppi;
+				widthPX = width * ppi;
 			}else{
 				widthPX = -1;
 				heightPX = -1;
@@ -1292,7 +1381,8 @@ $(".btn").click(function(){
 			function submit(){
 				if (propertiesCollected){
 					var now = new Date();
-					var nowString = now.getFullYear() + "-" + now.getMonth() + "-" + now.getDay() + ' ' + now.getHours() + ":" + now.getMinutes() + ":" + now.getSeconds();
+					console.log(now.toLocaleString)
+					var nowString = now.toLocaleString()
 					config.createdAt = nowString;
 					config.lastDrawn = nowString;
 					c = JSON.stringify(config);

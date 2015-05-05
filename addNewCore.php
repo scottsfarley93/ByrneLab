@@ -72,6 +72,7 @@
             <li><a href="savedProjects.php">Saved Projects</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
+          	<li><a href='tickets.php'>Ticket Center</a></li>
             <li><a href="scripts/logout.php">Logout</a></li>
           </ul>
       </div>
@@ -142,7 +143,7 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script>
-    	$("#form-submit").on('click', function(e){
+    	$("#form-submit").click(function(e){
     		var coreName = $("#coreName").val();
     		var siteName = $("#siteName").val();
     		var minAge = $("#minAge").val();
@@ -156,7 +157,7 @@
     		var protect = $("#protect").prop('checked');
     		var pass = $("#pass").val();
     		e.preventDefault();
-    		    		$.ajax({
+    		$.ajax({
     			url: 'scripts/processNewCore.php', 
     			type:"POST",
     			data:{
@@ -174,6 +175,7 @@
     				pass:pass
     			},
     			success:function(response){
+    				console.log(response)
     				if(response == "Success"){
     					alert("Core added.");
     					window.location.href = "manageData.php";

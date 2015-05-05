@@ -1,5 +1,4 @@
 <?php
-require_once("../database_access.php");
 session_start();
 header("Content-Type: application/json", true);
 if(isset($_SESSION['user'])){
@@ -28,15 +27,8 @@ $fname = "../savedProjects/" . $user . "_" . $coreURL . "_". $n . ".cpn";
 $f = fopen($fname, "w") or die("Unable to open the file: " . $fname);
 fwrite($f, $c);
 fclose($f);
-$sql = "INSERT INTO `SavedProjects` Values (Default, '$user', '$core', $n, Default, '$fname')";
-$query = mysqli_query($connection, $sql);
-if (!$query){
-	$response = array("success" => "false", "error" => "true", "user"=>$user, "core"=>$coreURL, "timestamp"=>$n, message => "Database error: " . mysqli_error($connection));
-	$R = json_encode($response);
-	echo $R;
-}else{
-	$response = array("success" => "true", "error" => "false", "user"=>$user, "core"=>$coreURL, "timestamp"=>$n);
-	$R = json_encode($response);
-	echo $R;
-}
+$response = array("success" => "true", "error" => "false", "user"=>$user, "core"=>$coreURL, "timestamp"=>$n);
+$R = json_encode($response);
+echo $R;
+
 ?>

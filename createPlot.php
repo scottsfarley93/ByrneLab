@@ -49,10 +49,13 @@ if ($_SESSION['loggedIn'] == "TRUE"){
 	table{
 		border:#ffffff;
 	}
-	#stratigraphy-modal{
-		width: 100% !important;
+	.modal-content{
+		width: 120% !important;
 	}
-	
+	.fileHeader{
+		padding-top: 5%;
+		margin-top: 5%;
+	}
 
   	</style>
     <meta charset="utf-8">
@@ -92,6 +95,7 @@ if ($_SESSION['loggedIn'] == "TRUE"){
             <li><a href="savedProjects.php">Saved Projects</a></li>
           </ul>
           <ul class="nav navbar-nav navbar-right">
+          	<li><a href='tickets.php'>Ticket Center</a></li>
             <li><a href="scripts/logout.php">Logout</a></li>
           </ul>
       </div>
@@ -165,27 +169,19 @@ if ($_SESSION['loggedIn'] == "TRUE"){
         				</div>
         			</li>
         			<li class='list-group-item' id='apfacLi'>
-        				APFAC     <span class='glyphicon glyphicon-plus' id='apfacGlyph'></span>
+        				Pollen Accumulation Rate<span class='glyphicon glyphicon-plus' id='apfacGlyph'></span>
         				<div id='apfacDiv'>
         					<ul class='list-group row'>
         						<li class='list-group-item'>
-        							<strong><p>Grains per cm<sup>3</sup></p></strong>
         							<ul class='list-group'>
-        								<li class='list-group-item'>Sample Volume Field:  <select id='volumeVolumeSelect'><option value='null'>--None--</option></select></li>
-        								<li class='list-group-item'>Control Count Field:  <select id='volumeControlSelect'><option value='null'>--None--</option></select></li>
+        								<li class='list-group-item'>Controls Counted:  <select id='apfacControlCountSelect'><option value='null'>--None--</option></select></li>
+        								<li class='list-group-item'>Controls Added:  <select id='apfacTotalControlSelect'><option value='null'>--None--</option></select></li>
+        								<li class='list-group-item'>Years in Sample:  <select id='apfacYearsSelect'><option value='null'>--None--</option></select></li>
+        								<li class='list-group-item'>Sample Vertical Thickness:  <select id='apfacThickSelect'><option value='null'>--None--</option></select></li>
+        								<li class='list-group-item'>Sample Volume:  <select id='apfacVolumeSelect'><option value='null'>--None--</option></select></li>
         							</ul>
         						</li>
-        					</ul> 
-        					<ul class='list-group row'>
-        						<li class='list-group-item'>
-        							<strong><p>Accumulation Rate</p></strong>
-        							<ul class='list-group'>
-        								<li class='list-group-item'>Sample Mass Field:  <select id='massMassSelect'><option value='null'>--None--</option></select></li>
-        								<li class='list-group-item'>Control Count Field:  <select id='massControlSelect'><option value='null'>--None--</option></select></li>
-        								<li class='list-group-item'>Years in Sample Field:  <select id='massYearsSelect'><option value='null'>--None--</option></select></li>
-        							</ul>
-        						</li>
-        					</ul> 
+        					</ul>
         				</div>	
         				</div>
         			</li>
@@ -250,20 +246,21 @@ if ($_SESSION['loggedIn'] == "TRUE"){
         			<li class='list-group-item'><input type='radio' value= 'true' name='showStratigraphy' id='showStratigraphyInput'/>  Show stratigraphy column </li>
         			<li class='list-group-item'><input type='radio' value= 'false' name='showStratigraphy' id='hideStratigraphyInput' checked/>  Do not show stratigraphy column </li>
         			<li class='list-group-item'><button id='createStratDiagramButton' class='btn btn-primary' data-toggle='modal' data-target='#stratigraphy-modal'>Build Stratigraphy Diagram</button></li>
-        			<div class='modal fade' id='stratigraphy-modal' tabindex="-1" role='dialog' aria-hide='true'>
+        			 <div class='modal fade' id='stratigraphy-modal' tabindex="-1" role='dialog' aria-hide='true'>
         				<div class='modal-dialog'>
         					<div class='modal-content'>
         						<div class='modal-header'>
         							<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
         							<h4 class='modal-title'>Stratigraphy Column Editor</h4>
         							<div class='modal-body'>
-        								<p>Input the parameters for the stratigraphy column in your diagram.  Please ensure that layers to no overlap in depth.  Unexpect results may occur if zones overlap.</p>
-        								<table class='modal-table' id='stratTable'>
+        								<p>Specify the upper and lower bounds and fill types of the layers you would like to include in the stratigraphy column.</p>
+										<table class='modal-table' id='stratTable'>
         									<thead><th>Zone Label</th><th>Upper Boundary</th><th>Lower Boundary</th><th>Layer Fill</th><th>Boundary Type</th></thead>
         									
         								</table>
-        							<button class='btn btn-success' id='addStratLayerButton'>Add Stratigraphy Layer <span class='glyphicon glyphicon-plus'></span></button>
-        							<button class='btn btn-danger' id='removeStratLayerButton'>Remove Stratigraphy Layer <span class='glyphicon glyphicon-minus'></span></button>
+        								
+        								<button class='btn btn-success' id='addStratLayerButton'>Add Zone<span class='gyphicon glyphicon-plus'></span></button>
+        								<button class='btn btn-danger' id='removeStratLayerButton'>Remove Zone <span class='glyphicon glyphicon-minus'></span></button>
         							</div>
         							<div class='modal-footer'>
         								<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
@@ -275,6 +272,7 @@ if ($_SESSION['loggedIn'] == "TRUE"){
         			</div>
         		</ul>
         		<br />
+        		
         		<ul class="list-group ">
         			<strong>Diagram Zonation</strong>
         			<li class='list-group-item'><input type='radio' value= 'true' name='showZonation' id='showZonationInput'/>  Enable Zonation </li>
@@ -291,6 +289,7 @@ if ($_SESSION['loggedIn'] == "TRUE"){
         								<table class='modal-table' id='zoneTable'>
         									<thead><th>Zone Label</th><th>Upper Boundary</th><th>Lower Boundary</th><th>Subzone?</th></thead>
         								</table>
+        								
         								<button class='btn btn-success' id='addZoneButton'>Add Zone<span class='gyphicon glyphicon-plus'></span></button>
         								<button class='btn btn-danger' id='removeZoneButton'>Remove Zone <span class='glyphicon glyphicon-minus'></span></button>
         							</div>
