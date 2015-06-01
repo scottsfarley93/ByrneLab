@@ -1,0 +1,35 @@
+<html>
+	<head>
+		<title>Listing Test</title>
+	</head>
+	<body>
+		<button id='goButton'>Click to test listing capabilities.</button>
+		<div id='before'></div>
+		<div id='results'></div>
+	</body>
+	
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+	<script>
+		$("#goButton").click(function(){
+			$.ajax({
+				url:"scripts/makeListing.php",
+				type: "POST",
+				data: {
+					cpnFile: "scottsfarley1_Test+Core_1431629757.cpn"
+				},
+				beforeSend: function(){
+					console.log("sending.");
+					$("#before").text("Sending request.")
+				},
+				error: function(e){
+					console.log(e);
+					$("#results").text("There was an error. Check the log.");
+				},
+				success: function(response){
+					$("#results").html(response);
+				}
+				
+			});
+		});
+	</script>
+</html>
